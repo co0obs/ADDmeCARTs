@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ADDmeCART - Product Catalog{% endblock %}
+
+{% block body %}
+<style>
+    /* Enforcing the mandatory SRS White Background constraint */
+    body { background-color: #FFFFFF; font-family: Arial, sans-serif; color: #333; margin: 20px; }
+    .product-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+    .product-card { border: 1px solid #ccc; padding: 15px; width: 250px; border-radius: 5px; }
+    .price { color: #2ecc71; font-weight: bold; font-size: 1.2em; }
+    .category { font-size: 0.8em; color: #888; text-transform: uppercase; }
+</style>
+
+<h1>Product Catalog</h1>
+
+<div class="product-grid">
+    {% for product in products %}
+        <div class="product-card">
+            <div class="category">{{ product.category }}</div>
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description }}</p>
+            <p class="price">₱{{ product.price|number_format(2) }}</p>
+            <p>Stock: {{ product.stockQuantity }} items</p>
+            <button>Add to Cart</button>
+        </div>
+    {% else %}
+        <p>No products found in the database.</p>
+    {% endfor %}
+</div>
+{% endblock %}
