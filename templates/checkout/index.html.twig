@@ -3,50 +3,72 @@
 {% block title %}Secure Checkout - ADDmeCART{% endblock %}
 
 {% block body %}
-<div class="container" style="background-color: #FFFFFF; padding: 40px; margin-top: 20px; border: 1px solid #ddd; border-radius: 8px;">
+<div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; background-color: #ffffff; padding: 20px;">
     
-    <h2 style="color: #333;">Checkout Summary</h2>
-    <hr>
+    <div style="width: 100%; max-width: 500px; padding: 40px; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); background-color: #ffffff; text-align: center;">
 
-    {# Error messages for wrong PINs or 300-item limit #}
-    {% for message in app.flashes('error') %}
-        <div style="color: red; padding: 10px; background-color: #ffe6e6; border: 1px solid red; margin-bottom: 15px; border-radius: 4px;">
-            {{ message }}
+        <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 10px; color: #333;">Checkout Summary</h1>
+        <p style="color: #666; margin-bottom: 30px;">Total Items: 10 | Grand Total: <strong>₱999.99</strong></p>
+
+        <div style="margin-bottom: 30px; padding: 20px; background-color: #f8f9fa; border-radius: 8px; border: 1px dashed #ccc;">
+            <p style="font-weight: bold; color: #0056b3; margin-top: 0;">1. Scan to Pay via GCash</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MockGCashPaymentEndpoint" alt="GCash QR Code" style="margin-bottom: 10px;">
+            <p style="font-size: 14px; color: #777; margin-bottom: 0;">Scan this mock QR code to simulate a payment.</p>
         </div>
-    {% endfor %}
 
-    <div class="order-details" style="margin-bottom: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 5px;">
-        <p><strong>Total Items:</strong> 10</p>
-        <p><strong>Grand Total:</strong> ₱999.99</p>
-    </div>
-
-    <button onclick="document.getElementById('pinModal').style.display='block'" 
-            style="background-color: #0056b3; color: white; padding: 12px 24px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold;">
-        Proceed to Secure Payment
-    </button>
-</div>
-
-<div id="pinModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index: 1000;">
-    
-    <div style="background-color: #FFFFFF; width: 350px; margin: 10% auto; padding: 30px; text-align: center; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-        
-        <h3 style="margin-top: 0; color: #333;">Security Verification</h3>
-        <p style="color: #666; font-size: 14px;">Enter your 4-Digit PIN to authorize this transaction via GCash.</p>
-        
-        <form action="{{ path('app_checkout_process') }}" method="POST">
-            <input type="password" name="security_pin" maxlength="4" pattern="\d{4}" required placeholder="****" 
-                   style="text-align: center; font-size: 32px; width: 140px; letter-spacing: 12px; margin: 20px 0; padding: 10px; border: 2px solid #ccc; border-radius: 5px;">
-            <br>
+        <form id="checkoutForm" action="{{ path('app_checkout_process') }}" method="POST">
+            <p style="font-weight: bold; color: #0056b3; text-align: left;">2. Verify & Complete</p>
             
-            <button type="button" onclick="document.getElementById('pinModal').style.display='none'" 
-                    style="background-color: #e0e0e0; color: #333; padding: 10px 15px; border: none; cursor: pointer; border-radius: 5px; margin-right: 10px;">
-                Cancel
-            </button>
-            <button type="submit" 
-                    style="background-color: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px; font-weight: bold;">
-                Confirm Payment
+            <div style="margin-bottom: 20px; text-align: left;">
+                <label for="security_pin" style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">Enter 4-Digit Security PIN</label>
+                <input type="password" name="security_pin" id="security_pin" maxlength="4" required style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; letter-spacing: 5px; text-align: center;">
+            </div>
+
+            <input type="hidden" name="transaction_id" id="transaction_id" value="">
+
+            <button type="button" id="apiTestBtn" onclick="runMockApiTest()" style="width: 100%; padding: 14px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.3s; text-transform: uppercase; letter-spacing: 1px;">
+                Verify API Payment
             </button>
         </form>
+
     </div>
 </div>
+
+<script>
+function runMockApiTest() {
+    const pinInput = document.getElementById('security_pin').value;
+    const btn = document.getElementById('apiTestBtn');
+    
+    if(pinInput.length !== 4) {
+        alert("Please enter your 4-Digit PIN first.");
+        return;
+    }
+
+    // Change button state to show we are "contacting" the external server
+    btn.innerHTML = "Processing API Request...";
+    btn.style.backgroundColor = "#ffc107";
+    btn.style.color = "#000";
+    btn.disabled = true;
+
+    // Make a real HTTP fetch request to our mock endpoint
+    fetch('/api/mock-gcash-verify', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 'success') {
+            // We got the fake API response! Inject the transaction ID into the form
+            document.getElementById('transaction_id').value = data.transaction_id;
+            
+            // Now actually submit the form to save the order
+            document.getElementById('checkoutForm').submit();
+        }
+    })
+    .catch(error => {
+        alert("API Connection Failed");
+        btn.innerHTML = "Verify API Payment";
+        btn.disabled = false;
+    });
+}
+</script>
 {% endblock %}

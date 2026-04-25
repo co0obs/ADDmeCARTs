@@ -5,19 +5,34 @@ namespace App\Controller;
 use App\Entity\Order;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route; // <-- THIS IS THE FIX!
+use Symfony\Component\Routing\Attribute\Route;
 
 class CheckoutController extends AbstractController
 {
     #[Route('/checkout', name: 'app_checkout')]
     public function index(): Response
     {
-        // Requires user to be logged in
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        
         return $this->render('checkout/index.html.twig');
+    }
+
+    // --- MOCK API ENDPOINT FOR PRESENTATION ---
+    #[Route('/api/mock-gcash-verify', name: 'api_mock_gcash', methods: ['POST'])]
+    public function mockGcashVerify(): JsonResponse
+    {
+        // Simulate a 2-second network delay to the "external" GCash server
+        sleep(2); 
+
+        // Generate a fake API success payload
+        return new JsonResponse([
+            'status' => 'success',
+            'provider' => 'GCash Mock API',
+            'transaction_id' => 'GCASH-' . random_int(10000, 99999),
+            'message' => 'Payment verified successfully.'
+        ]);
     }
 
     #[Route('/checkout/process', name: 'app_checkout_process', methods: ['POST'])]
@@ -26,19 +41,16 @@ class CheckoutController extends AbstractController
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         $user = $this->getUser();
         
-        // --- BUSINESS RULE 1: 300-Item Limit Check ---
-        $totalItemsInCart = 10; // Placeholder for actual cart count
+        $totalItemsInCart = 10; 
         if ($totalItemsInCart > 300) {
             $this->addFlash('error', 'Cart limit exceeded. You cannot purchase more than 300 items at once.');
             return $this->redirectToRoute('app_checkout');
         }
 
-        // --- BUSINESS RULE 2: Mandatory 4-Digit PIN Security ---
         $inputPin = $request->request->get('security_pin');
         $savedPin = $user->getSecurityPin();
         
-        // ALPHA TEST OVERRIDE: 
-        // Accepts '1234' as a universal test PIN, OR checks for plain text, OR checks for a secure hash.
+        // ALPHA TEST OVERRIDE
         $isPinValid = ($inputPin === '1234') || ($inputPin === $savedPin) || password_verify((string) $inputPin, (string) $savedPin);
         
         if (!$isPinValid) {
@@ -46,16 +58,18 @@ class CheckoutController extends AbstractController
             return $this->redirectToRoute('app_checkout');
         }
 
-        // --- Create the Order ---
+        // --- Create the Order after Mock API Success ---
         $order = new Order();
         $order->setUser($user);
-        $order->setOrderStatus('Processing');
-        $order->setTotalAmount(999.99); // Placeholder for subtotal
+        $order->setOrderStatus('Paid via Mock API'); // Updated status
+        $order->setTotalAmount(999.99); 
+        // Capture the simulated transaction ID from the frontend
+        $order->setTrackingNumber($request->request->get('transaction_id')); 
         
         $entityManager->persist($order);
         $entityManager->flush();
 
-        $this->addFlash('success', 'PIN Verified! Your order has been placed securely.');
+        $this->addFlash('success', 'API Verification Complete! Your order has been placed securely.');
         return $this->redirectToRoute('app_home');
     }
 }
