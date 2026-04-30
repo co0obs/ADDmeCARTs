@@ -37,8 +37,10 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1 style="margin-top: 0; color: #2c3e50;">Product Catalog</h1>
         
-        {# Display an "Add Product" button directly on the shop page if the user is logged in #}
-        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        {# ========================================== #}
+        {# THE FIX: ONLY SHOW THIS BUTTON TO SELLERS #}
+        {# ========================================== #}
+        {% if is_granted('ROLE_SELLER') %}
             <a href="{{ path('app_product_new') }}" style="background-color: #28a745; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; transition: 0.2s;">+ Add New Product</a>
         {% endif %}
     </div>

@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType; // <-- Added this import
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -20,6 +21,21 @@ class RegistrationFormType extends AbstractType
             ->add('firstName')
             ->add('lastName')
             ->add('email')
+            
+            // ==========================================
+            // THE NEW DROPDOWN FIELD
+            // ==========================================
+            ->add('accountType', ChoiceType::class, [
+                'mapped' => false, 
+                'choices'  => [
+                    'Customer' => 'ROLE_CUSTOMER',
+                    'Seller' => 'ROLE_SELLER',
+                ],
+                'label' => 'I want to register as a:',
+                'expanded' => false,
+                'multiple' => false,
+            ])
+            
             ->add('securityPin', null, [
                 'label' => '4-Digit Security PIN (Required for Checkout)'
             ])

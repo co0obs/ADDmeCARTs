@@ -69,8 +69,17 @@
                 <a href="{{ path('app_product_catalog') }}">Shop</a>
                 <a href="{{ path('app_order_tracking') }}">Track Order</a>
                 
-                {# Only show Admin Dashboard if the user is logged in (you can update this to check for ROLE_ADMIN later) #}
-                {% if app.user %}
+                {# ========================================== #}
+                {# THE FIX: STRICTLY LOCK NAVBAR LINKS        #}
+                {# ========================================== #}
+                
+                {# Only show Add Product if they are a SELLER #}
+                {% if is_granted('ROLE_SELLER') %}
+                    <a href="{{ path('app_product_new') }}" style="color: #8e44ad;">Add Product</a>
+                {% endif %}
+
+                {# Only show Admin Dashboard if they are an ADMIN #}
+                {% if is_granted('ROLE_ADMIN') %}
                     <a href="{{ path('app_admin_dashboard') }}" style="color: #e67e22;">Admin Dashboard</a>
                 {% endif %}
                 
