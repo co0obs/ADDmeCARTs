@@ -10,7 +10,7 @@
     <div style="max-width: 900px; margin: 0 auto;">
         
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 30px;">
-            <h1 style="color: #333; margin: 0;">Order Tracking</h1>
+            <h1 style="color: #333; margin: 0;">Order #{{ order.referenceNumber|default(order.id) }}</h1>
             <span style="background-color: #e2e3e5; padding: 8px 16px; border-radius: 20px; font-weight: bold; color: #555;">
                 Tracking #: {{ trackingNumber|default(order.trackingNumber) }}
             </span>
@@ -54,9 +54,15 @@
                 <tbody>
                     {% for item in order.orderItems %}
                         <tr style="border-bottom: 1px solid #f5f6fa;">
-                            <td style="padding: 12px 0; color: #444; font-weight: 500;">{{ item.product.name }}</td>
-                            <td style="padding: 12px 0; text-align: center; color: #777;">x{{ item.quantity }}</td>
-                            <td style="padding: 12px 0; text-align: right; color: #333; font-weight: bold;">₱{{ (item.price * item.quantity)|number_format(2) }}</td>
+                            <td style="padding: 12px 0; display: flex; align-items: center; gap: 15px;">
+                                {# Product Image Thumbnail #}
+                                <div style="width: 50px; height: 50px; border-radius: 6px; overflow: hidden; border: 1px solid #eee; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center;">
+                                    <img src="{{ item.product.thumbnailImage|default('https://via.placeholder.com/50?text=No+Img') }}" alt="{{ item.product.name }}" style="max-width: 100%; max-height: 100%; object-fit: cover;">
+                                </div>
+                                <span style="color: #444; font-weight: 500;">{{ item.product.name }}</span>
+                            </td>
+                            <td style="padding: 12px 0; text-align: center; color: #777; vertical-align: middle;">x{{ item.quantity }}</td>
+                            <td style="padding: 12px 0; text-align: right; color: #333; font-weight: bold; vertical-align: middle;">₱{{ (item.price * item.quantity)|number_format(2) }}</td>
                         </tr>
                     {% else %}
                         <tr>

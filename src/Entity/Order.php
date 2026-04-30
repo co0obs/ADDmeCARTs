@@ -38,6 +38,9 @@ class Order
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'orderRef', orphanRemoval: true)]
     private Collection $orderItems;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $referenceNumber = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -82,6 +85,18 @@ class Order
                 $orderItem->setOrderRef(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getReferenceNumber(): ?string
+    {
+        return $this->referenceNumber;
+    }
+
+    public function setReferenceNumber(?string $referenceNumber): static
+    {
+        $this->referenceNumber = $referenceNumber;
 
         return $this;
     }

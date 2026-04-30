@@ -112,6 +112,10 @@ class CheckoutController extends AbstractController
         // --- Create the Order ---
         $order = new Order();
         $order->setUser($user);
+
+        // --- Generate Order Number ---
+        $randomHex = strtoupper(bin2hex(random_bytes(3))); // Creates 6 random characters
+        $order->setReferenceNumber('ORD-' . $randomHex);
         $order->setOrderStatus('Paid via Mock API');
         $order->setTotalAmount($realTotal); 
         $order->setTrackingNumber($request->request->get('transaction_id')); 

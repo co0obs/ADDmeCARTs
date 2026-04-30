@@ -13,7 +13,7 @@
             <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <div>
-                        <strong style="font-size: 1.1em;">Order #{{ order.id }}</strong>
+                        <strong style="font-size: 1.1em;">Order #{{ order.referenceNumber|default(order.id) }}</strong>
                         <div style="color: #7f8fa6; font-size: 0.9em;">Placed on: {{ order.createdAt|date('M d, Y h:i A') }}</div>
                     </div>
                     <div style="font-size: 1.2em; font-weight: bold; color: #2ecc71;">
