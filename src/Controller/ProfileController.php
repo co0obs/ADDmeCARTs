@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Product;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,11 +17,12 @@ class ProfileController extends AbstractController
     public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
+        
+        // Fetch all products owned by this specific seller
+        $products = $entityManager->getRepository(Product::class)->findBy(['seller' => $user]);
 
-        // If the user submitted the form to change their store name
         if ($request->isMethod('POST')) {
             $newStoreName = $request->request->get('storeName');
-            
             $user->setStoreName($newStoreName);
             $entityManager->flush();
 
@@ -30,6 +32,7 @@ class ProfileController extends AbstractController
 
         return $this->render('profile/index.html.twig', [
             'user' => $user,
+            'products' => $products, // <-- Pass the products to the template
         ]);
     }
 }

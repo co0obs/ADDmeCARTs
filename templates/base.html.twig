@@ -78,13 +78,12 @@
                     </a>
                 {% endif %}
 
-                {# ========================================== #}
                 {# SELLER / ADMIN ONLY LINKS                  #}
-                {# ========================================== #}
                 
-                {# Only show Add Product if they are a SELLER #}
+                {# Only show Add Product and Store Profile if they are a SELLER #}
                 {% if is_granted('ROLE_SELLER') %}
                     <a href="{{ path('app_product_new') }}" style="color: #8e44ad;">Add Product</a>
+                    <a href="{{ path('app_profile') }}" style="color: #3498db; margin-left: 15px;">Store Profile</a>
                 {% endif %}
 
                 {# Only show Admin Dashboard if they are an ADMIN #}

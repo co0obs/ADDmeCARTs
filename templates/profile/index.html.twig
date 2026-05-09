@@ -23,5 +23,38 @@
             Save Store Name
         </button>
     </form>
+
+    {# --- NEW: MY PRODUCTS DASHBOARD --- #}
+    <h3 style="margin-top: 50px; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">My Inventory</h3>
+    
+    {% if products is empty %}
+        <p style="color: #7f8fa6; margin-top: 15px;">You haven't listed any products yet.</p>
+    {% else %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.95em;">
+            <tr style="background-color: #f8f9fa; text-align: left;">
+                <th style="padding: 12px; border-bottom: 2px solid #ddd;">Product Name</th>
+                <th style="padding: 12px; border-bottom: 2px solid #ddd;">Price</th>
+                <th style="padding: 12px; border-bottom: 2px solid #ddd;">Stock</th>
+                <th style="padding: 12px; border-bottom: 2px solid #ddd;">Actions</th>
+            </tr>
+            {% for item in products %}
+            <tr>
+                <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ item.name }}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee;">₱{{ item.price }}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ item.stockQuantity }} units</td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee; display: flex; gap: 15px;">
+                    {# Edit Button #}
+                    <a href="{{ path('app_product_edit', {'id': item.id}) }}" style="color: #3498db; text-decoration: none; font-weight: bold;">Edit</a>
+                    
+                    {# Delete Button (Uses a tiny form for security) #}
+                    <form method="post" action="{{ path('app_product_delete', {'id': item.id}) }}" onsubmit="return confirm('Are you sure you want to delete {{ item.name }}?');" style="margin: 0;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
+                        <button type="submit" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: bold; padding: 0;">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% endif %}    
 </div>
 {% endblock %}

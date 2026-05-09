@@ -24,7 +24,7 @@ class ProductController extends AbstractController
         ]);
     }
 
-    // Only SELLERS can get into this method!
+    // Only SELLERS can get into this method
     #[Route('/product/new', name: 'app_product_new')]
     #[IsGranted('ROLE_SELLER', message: 'Only registered sellers can add products.')]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
@@ -34,7 +34,6 @@ class ProductController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // --- THE UPGRADE: Link the product to the logged-in Seller ---
             $product->setSeller($this->getUser()); 
             
             $entityManager->persist($product);
@@ -50,5 +49,48 @@ class ProductController extends AbstractController
             'product' => $product,
             'form' => $form,
         ]);
+    }
+
+    #[Route('/product/{id}/edit', name: 'app_product_edit')]
+    #[IsGranted('ROLE_SELLER')]
+    public function edit(Product $product, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // SECURITY CHECK
+        if ($product->getSeller() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('You cannot edit a product you do not own.');
+        }
+
+        $form = $this->createForm(ProductType::class, $product);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Product updated successfully!');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        return $this->render('product/new.html.twig', [
+            'product' => $product,
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/product/{id}/delete', name: 'app_product_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_SELLER')]
+    public function delete(Product $product, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // SECURITY CHECK
+        if ($product->getSeller() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('You cannot delete a product you do not own.');
+        }
+
+        // CSRF Token validation for secure deletion
+        if ($this->isCsrfTokenValid('delete'.$product->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($product);
+            $entityManager->flush();
+            $this->addFlash('success', 'Product deleted successfully!');
+        }
+
+        return $this->redirectToRoute('app_profile');
     }
 }
