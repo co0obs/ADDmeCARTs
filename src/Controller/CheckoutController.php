@@ -144,10 +144,20 @@ class CheckoutController extends AbstractController
         $order = new Order();
         $order->setUser($user);
 
+        // --- Capture Payment Mode ---
+        $paymentMode = $request->request->get('payment_mode', 'GCash');
+        $order->setPaymentMode($paymentMode);
+
         // --- Generate Order Number ---
         $randomHex = strtoupper(bin2hex(random_bytes(3))); // Creates 6 random characters
         $order->setReferenceNumber('ORD-' . $randomHex);
-        $order->setOrderStatus('Paid via Mock API');
+
+        if ($paymentMode === 'Cash on Delivery') {
+            $order->setOrderStatus('Pending COD');
+        } else {
+            $order->setOrderStatus('Paid via Mock API');
+        }
+
         $order->setTotalAmount($realTotal); 
         $order->setTrackingNumber($request->request->get('transaction_id')); 
 

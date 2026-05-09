@@ -62,10 +62,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Wishlist::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $wishlists;
 
+    /**
+     * @var Collection<int, SupportTicket>
+     */
+    #[ORM\OneToMany(targetEntity: SupportTicket::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $supportTickets;
+
     public function __construct()
     {
         $this->products = new ArrayCollection();
         $this->wishlists = new ArrayCollection();
+        $this->supportTickets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -232,6 +239,48 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($product->getSeller() === $this) {
                 $product->setSeller(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function removeWishlist(Wishlist $wishlist): static
+    {
+        if ($this->wishlists->removeElement($wishlist)) {
+            // set the owning side to null (unless already changed)
+            if ($wishlist->getUser() === $this) {
+                $wishlist->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SupportTicket>
+     */
+    public function getSupportTickets(): Collection
+    {
+        return $this->supportTickets;
+    }
+
+    public function addSupportTicket(SupportTicket $supportTicket): static
+    {
+        if (!$this->supportTickets->contains($supportTicket)) {
+            $this->supportTickets->add($supportTicket);
+            $supportTicket->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSupportTicket(SupportTicket $supportTicket): static
+    {
+        if ($this->supportTickets->removeElement($supportTicket)) {
+            // set the owning side to null (unless already changed)
+            if ($supportTicket->getUser() === $this) {
+                $supportTicket->setUser(null);
             }
         }
 

@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ticket #{{ ticket.id }}{% endblock %}
+
+{% block body %}
+<div class="page-wrapper" style="max-width: 800px; margin: 0 auto;">
+    <div style="margin-bottom: 24px;">
+        <a href="{{ path('app_support_index') }}" class="btn btn-ghost" style="padding-left: 0;">&larr; Back to Tickets</a>
+    </div>
+
+    <div class="card" style="padding: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
+            <div>
+                <h1 style="font-size: 1.5rem; font-weight: 800; color: var(--text-primary); margin-bottom: 8px;">{{ ticket.subject }}</h1>
+                <div style="color: var(--text-muted); font-size: 0.9rem;">
+                    Ticket #{{ ticket.id }} • {{ ticket.createdAt|date('M d, Y h:i A', 'Asia/Manila') }}
+                </div>
+            </div>
+            <div>
+                {% if ticket.status == 'Open' %}
+                    <span class="badge badge-red" style="font-size: 0.9rem; padding: 6px 12px;">Open</span>
+                {% elseif ticket.status == 'In Progress' %}
+                    <span class="badge" style="background:#fef3c7; color:#d97706; font-size: 0.9rem; padding: 6px 12px;">In Progress</span>
+                {% else %}
+                    <span class="badge badge-green" style="font-size: 0.9rem; padding: 6px 12px;">Resolved</span>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if ticket.relatedOrder %}
+            <div style="background: var(--bg); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 24px; display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.5rem;">📦</span>
+                <div>
+                    <div style="font-weight: 600; color: var(--text-primary);">Linked to Order #{{ ticket.relatedOrder.referenceNumber|default(ticket.relatedOrder.id) }}</div>
+                    <div style="color: var(--text-muted); font-size: 0.85rem;">Total: ₱{{ ticket.relatedOrder.totalAmount|number_format(2) }}</div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div style="margin-bottom: 32px;">
+            <h3 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 12px;">Your Message:</h3>
+            <div style="background: var(--bg); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--border); color: var(--text-primary); line-height: 1.6; white-space: pre-wrap;">{{ ticket.message }}</div>
+        </div>
+
+        {% if ticket.attachmentPath %}
+            <div style="margin-bottom: 32px;">
+                <h3 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 12px;">Attachment:</h3>
+                <a href="/uploads/support/{{ ticket.attachmentPath }}" target="_blank" class="btn btn-ghost" style="border: 1px solid var(--border);">
+                    📎 View Attachment
+                </a>
+            </div>
+        {% endif %}
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0;">
+
+        <div>
+            <h3 style="font-size: 1rem; color: var(--text-primary); margin-bottom: 12px;">Admin Reply:</h3>
+            {% if ticket.adminReply %}
+                <div style="background: #eff6ff; padding: 20px; border-radius: var(--radius-md); border: 1px solid #bfdbfe; color: #1e3a8a; line-height: 1.6; white-space: pre-wrap;">{{ ticket.adminReply }}</div>
+            {% else %}
+                <div style="color: var(--text-muted); font-style: italic; padding: 20px; text-align: center; background: var(--bg); border-radius: var(--radius-md); border: 1px dashed var(--border);">
+                    An admin hasn't replied to this ticket yet.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

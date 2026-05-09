@@ -41,6 +41,9 @@ class Order
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $referenceNumber = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $paymentMode = 'GCash';
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -97,6 +100,18 @@ class Order
     public function setReferenceNumber(?string $referenceNumber): static
     {
         $this->referenceNumber = $referenceNumber;
+
+        return $this;
+    }
+
+    public function getPaymentMode(): ?string
+    {
+        return $this->paymentMode;
+    }
+
+    public function setPaymentMode(string $paymentMode): static
+    {
+        $this->paymentMode = $paymentMode;
 
         return $this;
     }

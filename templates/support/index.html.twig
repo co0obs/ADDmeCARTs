@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Support Tickets{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+        <div>
+            <h1 class="page-title" style="margin-bottom: 0;">🎧 My Support Tickets</h1>
+            <p class="page-subtitle">View your inquiries and our responses</p>
+        </div>
+        <a href="{{ path('app_support_new') }}" class="btn btn-primary">Create New Ticket</a>
+    </div>
+
+    <div class="card">
+        <div style="overflow-x:auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Ticket ID</th>
+                        <th>Date</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                        <tr>
+                            <td style="font-weight:700; font-family: var(--font-mono); font-size:0.85rem;">
+                                #{{ ticket.id }}
+                            </td>
+                            <td style="color: var(--text-muted); font-size:0.85rem;">
+                                {{ ticket.createdAt|date('M d, Y h:i A', 'Asia/Manila') }}
+                            </td>
+                            <td style="font-weight:600; color: var(--text-primary);">
+                                {{ ticket.subject }}
+                                {% if ticket.relatedOrder %}
+                                    <div style="font-size:0.8rem; color: var(--text-muted); margin-top:4px;">
+                                        Order #{{ ticket.relatedOrder.referenceNumber|default(ticket.relatedOrder.id) }}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ticket.status == 'Open' %}
+                                    <span class="badge badge-red">Open</span>
+                                {% elseif ticket.status == 'In Progress' %}
+                                    <span class="badge" style="background:#fef3c7; color:#d97706;">In Progress</span>
+                                {% else %}
+                                    <span class="badge badge-green">Resolved</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ path('app_support_show', {'id': ticket.id}) }}" class="btn btn-ghost btn-sm">View Message</a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty-state">
+                                    <div class="empty-state__icon">🎟️</div>
+                                    <div class="empty-state__title">No tickets yet</div>
+                                    <div class="empty-state__text">If you have any questions or issues, feel free to open a ticket!</div>
+                                    <a href="{{ path('app_support_new') }}" class="btn btn-primary" style="margin-top: 16px;">Create New Ticket</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

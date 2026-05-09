@@ -5,8 +5,32 @@
 {% block body %}
 <div class="page-wrapper">
 
-    <h1 class="page-title">Admin Dashboard</h1>
-    <p class="page-subtitle">Manage all orders and update their status</p>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+        <div>
+            <h1 class="page-title">Admin Dashboard</h1>
+            <p class="page-subtitle">Store analytics and order management</p>
+        </div>
+    </div>
+
+    {# KPI Cards #}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 24px;">
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Total Revenue</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary);">₱{{ totalRevenue|number_format(2) }}</div>
+        </div>
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm);">
+            <div style="font-size: 0.9rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Total Orders</div>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--text-primary);">{{ totalOrders }}</div>
+        </div>
+    </div>
+
+    {# Chart.js Graph #}
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); margin-bottom: 32px;">
+        <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">Revenue Over Time</div>
+        <div style="height: 300px; position: relative;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
 
     <div class="card">
         <div class="card-header">Order Management</div>
@@ -18,6 +42,7 @@
                         <th>Date</th>
                         <th>Customer</th>
                         <th>Total</th>
+                        <th>Payment</th>
                         <th>Update Status</th>
                     </tr>
                 </thead>
@@ -35,10 +60,17 @@
                                 ₱{{ order.totalAmount|number_format(2) }}
                             </td>
                             <td>
+                                {% if order.paymentMode == 'Cash on Delivery' %}
+                                    <span class="badge" style="background: #fef3c7; color: #d97706;">🚚 COD</span>
+                                {% else %}
+                                    <span class="badge" style="background: #dbeafe; color: #1d4ed8;">📱 GCash</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 <form action="{{ path('app_admin_update_status', {'id': order.id}) }}" method="POST"
                                       style="display:flex; gap:8px; align-items:center;">
                                     <select name="status" style="padding:7px 10px; min-width:180px;">
-                                        {% for status in ['Paid via Mock API', 'Processing', 'Shipped', 'Out for Delivery', 'Completed', 'Cancelled'] %}
+                                        {% for status in ['Paid via Mock API', 'Pending COD', 'Processing', 'Shipped', 'Out for Delivery', 'Completed', 'Cancelled'] %}
                                             <option value="{{ status }}" {% if order.orderStatus == status %}selected{% endif %}>
                                                 {{ status }}
                                             </option>
@@ -50,7 +82,7 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="5">
+                            <td colspan="6">
                                 <div class="empty-state">
                                     <div class="empty-state__icon">📋</div>
                                     <div class="empty-state__title">No orders yet</div>
@@ -65,4 +97,78 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    
+    // Parse the JSON data passed from the controller
+    const dates = {{ chartDates|raw }};
+    const amounts = {{ chartAmounts|raw }};
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Daily Revenue (₱)',
+                data: amounts,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 3,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#3b82f6',
+                fill: true,
+                tension: 0.4 // Gives it a nice smooth curve
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false // Hide the legend for a cleaner look
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += '₱' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2});
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)'
+                    },
+                    ticks: {
+                        callback: function(value, index, values) {
+                            return '₱' + value;
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

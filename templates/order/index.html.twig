@@ -26,7 +26,14 @@
                     <div class="order-amount">₱{{ order.totalAmount|number_format(2) }}</div>
                 </div>
                 <div class="order-card__footer">
-                    <span class="badge badge-blue">{{ order.orderStatus }}</span>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="badge badge-blue">{{ order.orderStatus }}</span>
+                        {% if order.paymentMode == 'Cash on Delivery' %}
+                            <span class="badge" style="background: #fef3c7; color: #d97706;">🚚 COD</span>
+                        {% else %}
+                            <span class="badge" style="background: #dbeafe; color: #1d4ed8;">📱 GCash</span>
+                        {% endif %}
+                    </div>
                     <a href="{{ path('app_order_tracking', {'id': order.id}) }}" class="btn btn-primary btn-sm">
                         Track Order →
                     </a>

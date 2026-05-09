@@ -9,7 +9,31 @@
         <h1 class="auth-title">Checkout</h1>
         <p class="auth-subtitle">{{ totalItems }} item(s) · Grand Total: <strong style="color: var(--primary);">₱{{ total|number_format(2) }}</strong></p>
 
-        <div style="background: var(--bg); border: 1.5px dashed var(--border-strong); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
+        {# Mode of Payment Selection #}
+        <div style="background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px; text-align: left;">
+            <p style="font-weight:700; color: var(--text-primary); margin-bottom:16px; font-size: 1.05rem;">💳 Mode of Payment</p>
+
+            <label id="option-gcash" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid var(--primary); border-radius: var(--radius-md); cursor: pointer; margin-bottom: 10px; background: #eff6ff; transition: all 0.2s ease;">
+                <input type="radio" name="payment_mode_radio" value="GCash" checked onchange="togglePaymentMode()" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                <span style="font-size: 1.3rem;">📱</span>
+                <div>
+                    <strong style="color: var(--text-primary);">GCash</strong>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Pay online via GCash QR code</div>
+                </div>
+            </label>
+
+            <label id="option-cod" style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; background: var(--card-bg); transition: all 0.2s ease;">
+                <input type="radio" name="payment_mode_radio" value="Cash on Delivery" onchange="togglePaymentMode()" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                <span style="font-size: 1.3rem;">🚚</span>
+                <div>
+                    <strong style="color: var(--text-primary);">Cash on Delivery</strong>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Pay when the item is delivered</div>
+                </div>
+            </label>
+        </div>
+
+        {# GCash QR Section - Only shows when GCash is selected #}
+        <div id="gcash-section" style="background: var(--bg); border: 1.5px dashed var(--border-strong); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 28px;">
             <p style="font-weight:700; color: var(--primary); margin-bottom:12px;">Scan to Pay via GCash</p>
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MockGCashPaymentEndpoint"
                  alt="GCash QR Code"
@@ -20,6 +44,7 @@
         <form id="checkoutForm" action="{{ path('app_checkout_process') }}" method="POST">
             <input type="hidden" name="transaction_id" id="transaction_id" value="">
             <input type="hidden" name="security_pin" id="hidden_security_pin" value="">
+            <input type="hidden" name="payment_mode" id="hidden_payment_mode" value="GCash">
 
             <button type="button" id="btn-proceed" onclick="openPinModal()" class="btn btn-primary btn-block btn-lg">
                 Place Order
@@ -53,8 +78,31 @@
     const errorText = document.getElementById('pinErrorText');
     const hiddenSecurityPin = document.getElementById('hidden_security_pin');
     const hiddenTransactionId = document.getElementById('transaction_id');
+    const hiddenPaymentMode = document.getElementById('hidden_payment_mode');
     const checkoutForm = document.getElementById('checkoutForm');
     const proceedBtn = document.getElementById('btn-proceed');
+    const gcashSection = document.getElementById('gcash-section');
+    const optionGcash = document.getElementById('option-gcash');
+    const optionCod = document.getElementById('option-cod');
+
+    function togglePaymentMode() {
+        const selected = document.querySelector('input[name="payment_mode_radio"]:checked').value;
+        hiddenPaymentMode.value = selected;
+
+        if (selected === 'GCash') {
+            gcashSection.style.display = 'block';
+            optionGcash.style.borderColor = 'var(--primary)';
+            optionGcash.style.background = '#eff6ff';
+            optionCod.style.borderColor = 'var(--border)';
+            optionCod.style.background = 'var(--card-bg)';
+        } else {
+            gcashSection.style.display = 'none';
+            optionCod.style.borderColor = 'var(--primary)';
+            optionCod.style.background = '#eff6ff';
+            optionGcash.style.borderColor = 'var(--border)';
+            optionGcash.style.background = 'var(--card-bg)';
+        }
+    }
 
     function openPinModal() {
         modal.classList.add('open');
@@ -70,6 +118,7 @@
 
     function confirmPinAndProcess() {
         const pinValue = modalPinInput.value;
+        const paymentMode = hiddenPaymentMode.value;
 
         if (/^\d{4}$/.test(pinValue)) {
             hiddenSecurityPin.value = pinValue;
@@ -80,21 +129,28 @@
             proceedBtn.style.color = '#000';
             proceedBtn.disabled = true;
 
-            fetch('/api/mock-gcash-verify', { method: 'POST' })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        hiddenTransactionId.value = data.transaction_id;
-                        checkoutForm.submit();
-                    }
-                })
-                .catch(() => {
-                    alert('API Connection Failed');
-                    proceedBtn.innerHTML = 'Place Order';
-                    proceedBtn.style.background = '';
-                    proceedBtn.style.color = '';
-                    proceedBtn.disabled = false;
-                });
+            if (paymentMode === 'GCash') {
+                // GCash flow: verify through mock API first
+                fetch('/api/mock-gcash-verify', { method: 'POST' })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            hiddenTransactionId.value = data.transaction_id;
+                            checkoutForm.submit();
+                        }
+                    })
+                    .catch(() => {
+                        alert('API Connection Failed');
+                        proceedBtn.innerHTML = 'Place Order';
+                        proceedBtn.style.background = '';
+                        proceedBtn.style.color = '';
+                        proceedBtn.disabled = false;
+                    });
+            } else {
+                // COD flow: submit directly, no API verification needed
+                hiddenTransactionId.value = 'COD-' + Date.now();
+                checkoutForm.submit();
+            }
         } else {
             errorText.style.display = 'block';
             modalPinInput.style.borderColor = 'var(--danger)';
