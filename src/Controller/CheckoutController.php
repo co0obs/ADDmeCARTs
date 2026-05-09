@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class CheckoutController extends AbstractController
 {
     #[Route('/checkout', name: 'app_checkout')]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         // 1. Get the currently logged-in user
         $user = $this->getUser();
@@ -22,6 +22,13 @@ class CheckoutController extends AbstractController
         // Security check: kick them to login if they aren't logged in
         if (!$user) {
             return $this->redirectToRoute('app_login');
+        }
+
+        // 1.5. Check selected items
+        $selectedItems = $request->getSession()->get('selected_cart_items', []);
+        if (empty($selectedItems)) {
+            $this->addFlash('error', 'Please select at least one item from your cart before checking out.');
+            return $this->redirectToRoute('app_cart_index');
         }
 
         // 2. Fetch their cart
@@ -34,9 +41,11 @@ class CheckoutController extends AbstractController
         // 4. If they have a cart, calculate the real math!
         if ($cart) {
             foreach ($cart->getCartItems() as $item) {
-                $totalItems += $item->getQuantity();
-                // Match the exact math from the CartController
-                $total += $item->getProduct()->getPrice() * $item->getQuantity();
+                if (in_array($item->getId(), $selectedItems)) {
+                    $totalItems += $item->getQuantity();
+                    // Match the exact math from the CartController
+                    $total += $item->getProduct()->getPrice() * $item->getQuantity();
+                }
             }
         }
 
@@ -46,6 +55,18 @@ class CheckoutController extends AbstractController
             'total' => $total,          
             'grandTotal' => $total,     
         ]);
+    }
+
+    #[Route('/checkout/prepare', name: 'app_checkout_prepare', methods: ['POST'])]
+    public function prepare(Request $request): Response
+    {
+        $selectedItems = $request->request->all('selected_items');
+        if (empty($selectedItems)) {
+            $this->addFlash('error', 'Please select at least one item to checkout.');
+            return $this->redirectToRoute('app_cart_index');
+        }
+        $request->getSession()->set('selected_cart_items', $selectedItems);
+        return $this->redirectToRoute('app_checkout');
     }
 
     // --- MOCK API ENDPOINT FOR PRESENTATION ---
@@ -70,6 +91,12 @@ class CheckoutController extends AbstractController
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
         $user = $this->getUser();
         
+        $selectedItems = $request->getSession()->get('selected_cart_items', []);
+        if (empty($selectedItems)) {
+            $this->addFlash('error', 'Session expired or no items selected.');
+            return $this->redirectToRoute('app_cart_index');
+        }
+
         $cart = $user->getCart();
         $realTotal = 0;
         $totalItemsInCart = 0;
@@ -79,6 +106,10 @@ class CheckoutController extends AbstractController
         // ==========================================
         if ($cart) {
             foreach ($cart->getCartItems() as $item) {
+                if (!in_array($item->getId(), $selectedItems)) {
+                    continue;
+                }
+
                 $product = $item->getProduct();
                 
                 // If they try to buy more than we have in stock, halt the transaction!
@@ -130,6 +161,10 @@ class CheckoutController extends AbstractController
         // ==========================================
         if ($cart) {
             foreach ($cart->getCartItems() as $cartItem) {
+                if (!in_array($cartItem->getId(), $selectedItems)) {
+                    continue;
+                }
+
                 $product = $cartItem->getProduct();
                 
                 // 1. Mathematically subtract the bought amount from the warehouse stock
@@ -152,6 +187,7 @@ class CheckoutController extends AbstractController
 
         // Save the order, the new product stock amounts, AND the cart deletion all at once
         $entityManager->flush();
+        $request->getSession()->remove('selected_cart_items');
 
         $this->addFlash('success', 'API Verification Complete! Your order has been placed securely.');
         return $this->redirectToRoute('app_user_orders');

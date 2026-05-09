@@ -8,11 +8,15 @@
     <h1 class="page-title">My Shopping Cart</h1>
 
     {% if cartItems|length > 0 %}
+        <form action="{{ path('app_checkout_prepare') }}" method="POST" id="cartForm">
 
         {# Table Header #}
         <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm);">
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px; gap: 16px; padding: 14px 24px; background: var(--bg); border-bottom: 1px solid var(--border);">
+            <div style="display: grid; grid-template-columns: 40px 2fr 1fr 1fr 1fr 100px; gap: 16px; padding: 14px 24px; background: var(--bg); border-bottom: 1px solid var(--border); align-items: center;">
+                <div style="display: flex; justify-content: center;">
+                    <input type="checkbox" id="selectAllCheckbox" style="cursor: pointer; width: 18px; height: 18px;" checked>
+                </div>
                 <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);">Product</div>
                 <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); text-align: center;">Unit Price</div>
                 <div style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); text-align: center;">Quantity</div>
@@ -21,7 +25,10 @@
             </div>
 
             {% for item in cartItems %}
-                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 100px; gap: 16px; padding: 20px 24px; align-items: center; border-bottom: 1px solid var(--border);">
+                <div style="display: grid; grid-template-columns: 40px 2fr 1fr 1fr 1fr 100px; gap: 16px; padding: 20px 24px; align-items: center; border-bottom: 1px solid var(--border);">
+                    <div style="display: flex; justify-content: center;">
+                        <input type="checkbox" name="selected_items[]" value="{{ item.id }}" class="item-checkbox" data-price="{{ item.product.price * item.quantity }}" style="cursor: pointer; width: 18px; height: 18px;" checked>
+                    </div>
 
                     {# Product #}
                     <div style="display: flex; align-items: center; gap: 16px; min-width: 0;">
@@ -59,7 +66,7 @@
                     </div>
 
                     {# Total Price #}
-                    <div style="text-align: center; font-weight: 800; color: var(--danger); font-size: 1.05rem;">
+                    <div style="text-align: center; font-weight: 800; color: var(--primary); font-size: 1.05rem;">
                         ₱{{ (item.product.price * item.quantity)|number_format(2) }}
                     </div>
 
@@ -82,12 +89,13 @@
         <div style="position: sticky; bottom: 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); margin-top: 16px; padding: 18px 24px; display: flex; justify-content: flex-end; align-items: center; gap: 32px; box-shadow: var(--shadow-md);">
             <div style="text-align: right;">
                 <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Grand Total</div>
-                <div style="font-size: 1.6rem; font-weight: 800; color: var(--danger);">₱{{ total|number_format(2) }}</div>
+                <div style="font-size: 1.6rem; font-weight: 800; color: var(--primary);" id="grandTotalDisplay">₱{{ total|number_format(2) }}</div>
             </div>
-            <a href="{{ path('app_checkout') }}" class="btn btn-lg" style="background: var(--danger); color: white; padding: 14px 48px; font-size: 1rem;">
+            <button type="submit" id="checkoutBtn" class="btn btn-primary btn-lg" style="padding: 14px 48px; font-size: 1rem; border: none; cursor: pointer;">
                 Check Out
-            </a>
+            </button>
         </div>
+        </form>
 
     {% else %}
         <div class="empty-state" style="padding-top: 80px;">
@@ -99,4 +107,66 @@
     {% endif %}
 
 </div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+    const grandTotalDisplay = document.getElementById('grandTotalDisplay');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+
+    function updateTotals() {
+        let total = 0;
+        let anyChecked = false;
+        let allChecked = true;
+
+        itemCheckboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                total += parseFloat(checkbox.getAttribute('data-price'));
+                anyChecked = true;
+            } else {
+                allChecked = false;
+            }
+        });
+
+        if (grandTotalDisplay) {
+            grandTotalDisplay.innerHTML = '₱' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = allChecked && itemCheckboxes.length > 0;
+        }
+
+        if (checkoutBtn) {
+            if (anyChecked) {
+                checkoutBtn.disabled = false;
+                checkoutBtn.style.opacity = '1';
+                checkoutBtn.style.cursor = 'pointer';
+            } else {
+                checkoutBtn.disabled = true;
+                checkoutBtn.style.opacity = '0.5';
+                checkoutBtn.style.cursor = 'not-allowed';
+            }
+        }
+    }
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const isChecked = this.checked;
+            itemCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = isChecked;
+            });
+            updateTotals();
+        });
+    }
+
+    itemCheckboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', updateTotals);
+    });
+
+    updateTotals();
+});
+</script>
 {% endblock %}
