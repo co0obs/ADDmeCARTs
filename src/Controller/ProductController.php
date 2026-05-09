@@ -24,6 +24,14 @@ class ProductController extends AbstractController
         ]);
     }
 
+    #[Route('/product/{id}', name: 'app_product_show', requirements: ['id' => '\d+'])]
+    public function show(Product $product): Response
+    {
+        return $this->render('product/show.html.twig', [
+            'product' => $product,
+        ]);
+    }
+
     // Only SELLERS can get into this method
     #[Route('/product/new', name: 'app_product_new')]
     #[IsGranted('ROLE_SELLER', message: 'Only registered sellers can add products.')]

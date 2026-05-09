@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ADDmeCART — {{ product.name }}{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+    <div style="margin-bottom: 24px;">
+        <a href="{{ path('app_product_catalog') }}" class="btn btn-ghost" style="padding-left: 0;">&larr; Back to Catalog</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; background: var(--surface); border-radius: var(--radius-lg); padding: 40px; box-shadow: var(--shadow-md); border: 1px solid var(--border);">
+        
+        {# Left Side: Image #}
+        <div style="display: flex; justify-content: center; align-items: flex-start;">
+            {% if product.thumbnailImage %}
+                <img src="{{ product.thumbnailImage }}" alt="{{ product.name }}" style="width: 100%; max-width: 500px; height: auto; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border);">
+            {% else %}
+                <div style="width: 100%; max-width: 500px; aspect-ratio: 1/1; background: var(--bg); border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 1.5rem; font-weight: 700;">
+                    No Image Available
+                </div>
+            {% endif %}
+        </div>
+
+        {# Right Side: Details #}
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div>
+                <div style="font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); margin-bottom: 8px;">
+                    {{ product.category }}
+                </div>
+                <h1 style="font-size: 2.5rem; font-weight: 800; color: var(--text-primary); line-height: 1.2; margin: 0 0 12px 0;">
+                    {{ product.name }}
+                </h1>
+                <div style="font-size: 1rem; color: var(--text-muted);">
+                    Sold by <strong style="color: var(--text-secondary);">{{ product.seller.storeName|default('ADDmeCART Official') }}</strong>
+                </div>
+            </div>
+
+            <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary);">
+                ₱{{ product.price|number_format(2) }}
+            </div>
+
+            <div style="font-size: 1.1rem; color: var(--text-secondary); line-height: 1.6;">
+                {{ product.description }}
+            </div>
+
+            <div style="padding: 24px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-top: auto;">
+                <div style="margin-bottom: 16px;">
+                    {% if product.stockQuantity > 0 %}
+                        <span class="badge badge-green" style="font-size: 0.9rem; padding: 6px 12px;">In Stock: {{ product.stockQuantity }} units available</span>
+                    {% else %}
+                        <span class="badge badge-red" style="font-size: 0.9rem; padding: 6px 12px;">Out of Stock</span>
+                    {% endif %}
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    {% if product.stockQuantity > 0 %}
+                        <a href="{{ path('app_cart_add', {'id': product.id}) }}" class="btn btn-primary btn-lg" style="text-align: center; font-size: 1.1rem; padding: 16px;">
+                            🛒 Add to Cart
+                        </a>
+                    {% else %}
+                        <button class="btn btn-lg btn-block" disabled style="background:#e2e8f0; color:#9aa5b4; cursor:not-allowed; font-size: 1.1rem; padding: 16px;">
+                            Out of Stock
+                        </button>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_CUSTOMER') %}
+                        <form method="post" action="{{ path('app_wishlist_add', {'id': product.id}) }}" style="margin: 0;">
+                            <button type="submit" class="btn btn-ghost btn-block" style="font-size: 1rem; padding: 14px;">
+                                ❤️ Save to Wishlist
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-ghost btn-block" style="font-size: 1rem; padding: 14px; text-align: center;">
+                            Log in to save to wishlist
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

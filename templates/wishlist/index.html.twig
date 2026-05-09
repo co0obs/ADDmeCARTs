@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Wishlist - ADDmeCART{% endblock %}
+
+{% block body %}
+<div class="page-wrapper">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+        <div>
+            <h1 class="page-title">My Wishlist ❤️</h1>
+            <p class="page-subtitle">Products you've saved for later</p>
+        </div>
+    </div>
+
+    <div class="product-grid">
+        {% for item in wishlists %}
+            {% set product = item.product %}
+            <div class="product-card">
+
+                {% if product.thumbnailImage %}
+                    <img src="{{ product.thumbnailImage }}" alt="{{ product.name }}" class="product-card__image">
+                {% else %}
+                    <div class="product-card__image-placeholder">No Image</div>
+                {% endif %}
+
+                <div class="product-card__body">
+                    <div class="product-card__category">{{ product.category }}</div>
+                    <h3 class="product-card__title">{{ product.name }}</h3>
+                    <div class="product-card__seller">
+                        Sold by <strong>{{ product.seller.storeName|default('ADDmeCART Official') }}</strong>
+                    </div>
+
+                    <div class="product-card__footer">
+                        <span class="product-card__price">₱{{ product.price|number_format(2) }}</span>
+                        {% if product.stockQuantity > 0 %}
+                            <span class="product-card__stock">{{ product.stockQuantity }} left</span>
+                        {% else %}
+                            <span class="badge badge-red">Out of Stock</span>
+                        {% endif %}
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        {% if product.stockQuantity > 0 %}
+                            <a href="{{ path('app_cart_add', {'id': product.id}) }}" class="btn btn-primary btn-block">
+                                Add to Cart
+                            </a>
+                        {% else %}
+                            <button class="btn btn-block" disabled style="background:#e2e8f0; color:#9aa5b4; cursor:not-allowed;">
+                                Out of Stock
+                            </button>
+                        {% endif %}
+
+                        <form method="post" action="{{ path('app_wishlist_remove', {'id': item.id}) }}">
+                            <button type="submit" class="btn btn-ghost btn-block" style="color: #ef4444;">
+                                ✖ Remove from Wishlist
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        {% else %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-state__icon">❤️</div>
+                <div class="empty-state__title">Your wishlist is empty</div>
+                <div class="empty-state__text">Start exploring and save items you like!</div>
+                <a href="{{ path('app_product_catalog') }}" class="btn btn-primary" style="margin-top: 16px;">Browse Products</a>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

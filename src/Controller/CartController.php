@@ -95,16 +95,26 @@ class CartController extends AbstractController
             ]);
         }
 
-        // 3. Get the items and calculate the Grand Total
+        // 3. Get the items and group them by Store Name
         $cartItems = $user->getCart()->getCartItems();
         $total = 0;
+        $groupedItems = [];
         
         foreach ($cartItems as $item) {
             $total += $item->getProduct()->getPrice() * $item->getQuantity();
+            
+            $seller = $item->getProduct()->getSeller();
+            $storeName = ($seller && $seller->getStoreName()) ? $seller->getStoreName() : 'ADDmeCART Official';
+            
+            if (!isset($groupedItems[$storeName])) {
+                $groupedItems[$storeName] = [];
+            }
+            $groupedItems[$storeName][] = $item;
         }
 
         // 4. Send the data to the visual template
         return $this->render('cart/index.html.twig', [
+            'groupedItems' => $groupedItems,
             'cartItems' => $cartItems,
             'total' => $total
         ]);
