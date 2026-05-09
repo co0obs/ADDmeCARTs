@@ -1,9 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}ADDmeCART — Home{% endblock %}
 
 {% block body %}
-<h1>Welcome</h1>
-<a href="/products">Addme Cart</a>
+<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - var(--nav-height)); text-align:center; padding: 48px var(--page-pad); background: var(--bg);">
 
+    <div style="font-size:4rem; margin-bottom:16px;">🛒</div>
+    <h1 style="font-size:2.5rem; font-weight:800; letter-spacing:-1px; color: var(--text-primary); margin-bottom:12px;">
+        Welcome to ADDmeCART
+    </h1>
+    <p style="color: var(--text-muted); font-size:1.05rem; max-width:420px; margin-bottom:32px; line-height:1.6;">
+        A lightweight e-commerce catalog and inventory management system. Browse products, manage your cart, and track your orders.
+    </p>
+    <a href="{{ path('app_product_catalog') }}" class="btn btn-primary btn-lg">Browse Products →</a>
+
+</div>
 {% endblock %}

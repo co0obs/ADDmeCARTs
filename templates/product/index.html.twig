@@ -1,57 +1,27 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}ADDmeCART - Product Catalog{% endblock %}
+{% block title %}ADDmeCART — Shop{% endblock %}
 
 {% block body %}
-<div style="padding: 40px; background-color: #FFFFFF;">
-    <style>
-        /* Search Bar */
-        .search-container { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
-        .search-input { padding: 12px 15px; width: 350px; border: 1px solid #dfe6e9; border-radius: 6px; font-size: 1em; outline: none; transition: border-color 0.3s; }
-        .search-input:focus { border-color: #3498db; }
-        .search-btn { padding: 12px 25px; background-color: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1em; transition: background-color 0.3s; }
-        .search-btn:hover { background-color: #2980b9; }
-        .clear-search { color: #e74c3c; text-decoration: none; font-weight: 600; margin-left: 15px; }
+<div class="page-wrapper">
 
-        /* Product Grid & Cards */
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
-        .product-card { 
-            background: #FFFFFF; border: 1px solid #f1f2f6; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
-            transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column;
-        }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
-        
-        /* Typography inside cards */
-        .category { font-size: 0.75em; color: #a4b0be; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 5px; }
-        .product-title { margin: 0 0 10px 0; font-size: 1.3em; color: #2f3640; }
-        .product-desc { color: #7f8fa6; font-size: 0.9em; line-height: 1.5; flex-grow: 1; margin-bottom: 15px; }
-        .price-stock-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .price { color: #2ecc71; font-weight: 800; font-size: 1.4em; margin: 0; }
-        .stock { font-size: 0.85em; color: #7f8fa6; margin: 0; }
-
-        /* Call to Action */
-        .btn-add { background-color: #2c3e50; color: white; border: none; padding: 12px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; transition: background-color 0.3s; font-size: 1em; }
-        .btn-add:hover { background-color: #1a252f; }
-    </style>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1 style="margin-top: 0; color: #2c3e50;">Product Catalog</h1>
-        
-        {# ========================================== #}
-        {# THE FIX: ONLY SHOW THIS BUTTON TO SELLERS #}
-        {# ========================================== #}
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:24px;">
+        <div>
+            <h1 class="page-title">Product Catalog</h1>
+            <p class="page-subtitle">Browse and add items to your cart</p>
+        </div>
         {% if is_granted('ROLE_SELLER') %}
-            <a href="{{ path('app_product_new') }}" style="background-color: #28a745; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; transition: 0.2s;">+ Add New Product</a>
+            <a href="{{ path('app_product_new') }}" class="btn btn-success">+ Add New Product</a>
         {% endif %}
     </div>
 
     {# --- SEARCH BAR --- #}
-    <div class="search-container">
-        <form method="get" action="{{ path('app_product_catalog') }}" style="display: flex; gap: 10px; align-items: center;">
-            <input type="text" name="q" value="{{ app.request.query.get('q') }}" class="search-input" placeholder="Search by name or category...">
-            <button type="submit" class="search-btn">Search</button>
+    <div class="search-bar">
+        <form method="get" action="{{ path('app_product_catalog') }}" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <input type="text" name="q" value="{{ app.request.query.get('q') }}" placeholder="Search by name or category…" style="min-width:240px;">
+            <button type="submit" class="btn btn-primary">Search</button>
             {% if app.request.query.get('q') %}
-                <a href="{{ path('app_product_catalog') }}" class="clear-search">Clear</a>
+                <a href="{{ path('app_product_catalog') }}" class="btn btn-ghost">✕ Clear</a>
             {% endif %}
         </form>
     </div>
@@ -60,49 +30,50 @@
     <div class="product-grid">
         {% for product in products %}
             <div class="product-card">
-                
-                {# --- THE NEW IMAGE DISPLAY LOGIC --- #}
+
                 {% if product.thumbnailImage %}
-                    <img src="{{ product.thumbnailImage }}" alt="{{ product.name }}" style="width: 100%; height: 220px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee;">
+                    <img src="{{ product.thumbnailImage }}" alt="{{ product.name }}" class="product-card__image">
                 {% else %}
-                    <div style="width: 100%; height: 220px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; color: #adb5bd; font-weight: bold; border: 1px solid #eee;">
-                        No Image
-                    </div>
+                    <div class="product-card__image-placeholder">No Image</div>
                 {% endif %}
-                
-                <div class="category">{{ product.category }}</div>
-                <h3 class="product-title">{{ product.name }}</h3>
-                
-                {# THE NEW CODE: Show the Store Name #}
-                <div style="font-size: 0.85em; color: #7f8fa6; margin-top: 5px; margin-bottom: 10px;">
-                    Sold by: <strong style="color: #3498db;">{{ product.seller.storeName|default('ADDmeCART Official') }}</strong>
+
+                <div class="product-card__body">
+                    <div class="product-card__category">{{ product.category }}</div>
+                    <h3 class="product-card__title">{{ product.name }}</h3>
+                    <div class="product-card__seller">
+                        Sold by <strong>{{ product.seller.storeName|default('ADDmeCART Official') }}</strong>
+                    </div>
+                    <p class="product-card__desc">{{ product.description }}</p>
+
+                    <div class="product-card__footer">
+                        <span class="product-card__price">₱{{ product.price|number_format(2) }}</span>
+                        {% if product.stockQuantity > 0 %}
+                            <span class="product-card__stock">{{ product.stockQuantity }} left</span>
+                        {% else %}
+                            <span class="badge badge-red">Out of Stock</span>
+                        {% endif %}
+                    </div>
+
+                    {% if product.stockQuantity > 0 %}
+                        <a href="{{ path('app_cart_add', {'id': product.id}) }}" class="btn btn-primary btn-block">
+                            Add to Cart
+                        </a>
+                    {% else %}
+                        <button class="btn btn-block" disabled style="background:#e2e8f0; color:#9aa5b4; cursor:not-allowed;">
+                            Out of Stock
+                        </button>
+                    {% endif %}
                 </div>
 
-                <p class="product-desc">{{ product.description }}</p>
-                
-                <div class="price-stock-row">
-                    <p class="price">₱{{ product.price|number_format(2) }}</p>
-                    <p class="stock">{{ product.stockQuantity }} left</p>
-                </div>
-                
-                {# Check if there is stock left #}
-                {% if product.stockQuantity > 0 %}
-                    <a href="{{ path('app_cart_add', {'id': product.id}) }}" style="text-decoration: none;">
-                        <button class="btn-add">Add to Cart</button>
-                    </a>
-                {% else %}
-                    {# Show a disabled Out of Stock button #}
-                    <button class="btn-add" disabled style="background-color: #bdc3c7; cursor: not-allowed;">
-                        Out of Stock
-                    </button>
-                {% endif %}
             </div>
         {% else %}
-            <div style="grid-column: 1 / -1; text-align: center; padding: 50px; color: #7f8fa6;">
-                <h2>No products found</h2>
-                <p>Try adjusting your search terms.</p>
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-state__icon">🔍</div>
+                <div class="empty-state__title">No products found</div>
+                <div class="empty-state__text">Try adjusting your search terms.</div>
             </div>
         {% endfor %}
     </div>
+
 </div>
 {% endblock %}

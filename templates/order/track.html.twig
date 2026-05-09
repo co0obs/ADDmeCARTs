@@ -1,67 +1,60 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Track Order #{{ order.id }} - ADDmeCART{% endblock %}
+{% block title %}Order #{{ order.id }} — ADDmeCART{% endblock %}
 
 {% block body %}
-<div style="max-width: 600px; margin: 40px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #eaeaea;">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f5f6fa; padding-bottom: 15px; margin-bottom: 25px;">
-        <h2 style="margin: 0; color: #2c3e50;">Order #{{ order.id }}</h2>
-        <span style="background: #e1f5fe; color: #0288d1; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9em;">
-            {{ order.orderStatus }}
-        </span>
+<div class="page-wrapper-medium">
+
+    <a href="{{ path('app_user_orders') }}" class="back-link">← Back to My Orders</a>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:28px;">
+        <h1 class="page-title" style="margin-bottom:0;">Order #{{ order.id }}</h1>
+        <span class="badge badge-blue" style="font-size:0.85rem; padding:6px 14px;">{{ order.orderStatus }}</span>
     </div>
 
-    {# ========================================== #}
-    {# THE NEW ORDER SUMMARY LIST                 #}
-    {# ========================================== #}
-    <div style="margin-bottom: 30px; background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #eee;">
-        <h3 style="margin-top: 0; font-size: 1.1em; color: #34495e; border-bottom: 1px solid #f5f6fa; padding-bottom: 10px;">Items Ordered</h3>
-        
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.95em;">
-            <tbody>
-                {% for item in order.orderItems %}
-                    <tr style="border-bottom: 1px solid #f9f9f9;">
-                        <td style="padding: 10px 0; color: #2c3e50; font-weight: 500;">{{ item.product.name }}</td>
-                        <td style="padding: 10px 0; text-align: center; color: #7f8fa6;">x{{ item.quantity }}</td>
-                        <td style="padding: 10px 0; text-align: right; color: #2c3e50;">₱{{ (item.price * item.quantity)|number_format(2) }}</td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="3" style="padding: 15px 0; text-align: center; color: #e74c3c; font-style: italic;">
-                            Old order format (Item details not saved)
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    {# Items Ordered #}
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">Items Ordered</div>
+        <div class="card-body" style="padding:0;">
+            <table class="data-table">
+                <tbody>
+                    {% for item in order.orderItems %}
+                        <tr>
+                            <td style="font-weight:600; color: var(--text-primary);">{{ item.product.name }}</td>
+                            <td style="text-align:center; color: var(--text-muted);">×{{ item.quantity }}</td>
+                            <td style="text-align:right; font-weight:700;">₱{{ (item.price * item.quantity)|number_format(2) }}</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align:center; color: var(--danger); font-style:italic;">
+                                Old order format — item details not available.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    {# A visual mock-up of an order timeline #}
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #eee;">
-        <h3 style="margin-top: 0; font-size: 1.1em; color: #34495e;">Tracking Timeline</h3>
-        
-        <ul style="list-style-type: none; padding-left: 10px; margin: 0; border-left: 3px solid #3498db;">
-            <li style="position: relative; padding-left: 20px; margin-bottom: 20px;">
-                <span style="position: absolute; left: -11px; top: 0; width: 15px; height: 15px; background: #3498db; border-radius: 50%; border: 2px solid white;"></span>
-                <strong style="color: #2c3e50;">Order Verified</strong><br>
-                <span style="font-size: 0.85em; color: #7f8fa6;">Payment was successful. Preparing for shipment.</span>
-            </li>
-            <li style="position: relative; padding-left: 20px; margin-bottom: 20px; opacity: 0.5;">
-                <span style="position: absolute; left: -11px; top: 0; width: 15px; height: 15px; background: #bdc3c7; border-radius: 50%; border: 2px solid white;"></span>
-                <strong>Handed to Courier</strong><br>
-                <span style="font-size: 0.85em;">Waiting for seller to dispatch.</span>
-            </li>
-            <li style="position: relative; padding-left: 20px; opacity: 0.5;">
-                <span style="position: absolute; left: -11px; top: 0; width: 15px; height: 15px; background: #bdc3c7; border-radius: 50%; border: 2px solid white;"></span>
-                <strong>Delivered</strong><br>
-                <span style="font-size: 0.85em;">Package arrives at your address.</span>
-            </li>
-        </ul>
-    </div>
-
-    <div style="margin-top: 30px; text-align: center;">
-        <a href="{{ path('app_user_orders') }}" style="color: #3498db; text-decoration: none; font-weight: bold;">&larr; Back to My Orders</a>
+    {# Tracking Timeline #}
+    <div class="card">
+        <div class="card-header">Tracking Timeline</div>
+        <div class="card-body">
+            <ul class="timeline">
+                <li class="timeline-item">
+                    <div class="timeline-label">Order Verified</div>
+                    <div class="timeline-desc">Payment was successful. Preparing for shipment.</div>
+                </li>
+                <li class="timeline-item inactive">
+                    <div class="timeline-label">Handed to Courier</div>
+                    <div class="timeline-desc">Waiting for seller to dispatch.</div>
+                </li>
+                <li class="timeline-item inactive">
+                    <div class="timeline-label">Delivered</div>
+                    <div class="timeline-desc">Package arrives at your address.</div>
+                </li>
+            </ul>
+        </div>
     </div>
 
 </div>

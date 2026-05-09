@@ -1,121 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}ADDmeCART{% endblock %}</title>
-        <style>
-            /* Universal White Background Constraint */
-            body {
-                background-color: #FFFFFF;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                color: #2c3e50;
-                margin: 0;
-                padding: 0;
-            }
-            
-            /* Master Navigation Bar */
-            .master-nav {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                background-color: #ffffff;
-                padding: 15px 40px;
-                border-bottom: 2px solid #eaeaea;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-            }
-            .nav-brand {
-                font-size: 1.5em;
-                font-weight: 800;
-                color: #0056b3;
-                text-decoration: none;
-                letter-spacing: 1px;
-            }
-            .nav-menu {
-                display: flex;
-                gap: 25px;
-                align-items: center;
-            }
-            .nav-menu a {
-                color: #555;
-                text-decoration: none;
-                font-weight: 600;
-                transition: color 0.3s;
-                text-transform: uppercase;
-                font-size: 0.9em;
-            }
-            .nav-menu a:hover {
-                color: #0056b3;
-            }
-            .nav-auth {
-                display: flex;
-                gap: 15px;
-                align-items: center;
-            }
-            
-            /* Global Flash Messages */
-            .global-alerts { padding: 0 40px; }
-            .alert { padding: 15px; margin-top: 20px; border-radius: 6px; font-weight: 500; }
-            .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-            .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        </style>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+        <link rel="stylesheet" href="/styles/app.css">
         {% block stylesheets %}{% endblock %}
     </head>
     <body>
-        
+
         <nav class="master-nav">
             <a href="/" class="nav-brand">🛒 ADDmeCART</a>
-            
+
             <div class="nav-menu">
                 <a href="{{ path('app_product_catalog') }}">Shop</a>
-                
-                {# ========================================== #}
-                {# CUSTOMER ONLY LINKS                        #}
-                {# ========================================== #}
+
                 {% if is_granted('ROLE_CUSTOMER') %}
-                    <a href="{{ path('app_user_orders') }}">My Orders & Tracking</a>
-                    <a href="/cart" style="color: #28a745; display: flex; align-items: center; gap: 5px;">
-                        Cart
+                    <a href="{{ path('app_user_orders') }}">My Orders</a>
+                    <a href="/cart" class="nav-cart">
+                        🛒 Cart
+                        {% if cartCount is defined and cartCount > 0 %}
+                            <span class="badge badge-green" style="margin-left:4px;">{{ cartCount }}</span>
+                        {% endif %}
                     </a>
                 {% endif %}
 
-                {# SELLER / ADMIN ONLY LINKS                  #}
-                
-                {# Only show Add Product and Store Profile if they are a SELLER #}
                 {% if is_granted('ROLE_SELLER') %}
-                    <a href="{{ path('app_product_new') }}" style="color: #8e44ad;">Add Product</a>
-                    <a href="{{ path('app_profile') }}" style="color: #3498db; margin-left: 15px;">Store Profile</a>
+                    <a href="{{ path('app_product_new') }}" class="nav-seller">+ Add Product</a>
+                    <a href="{{ path('app_profile') }}" class="nav-seller">Store Profile</a>
                 {% endif %}
 
-                {# Only show Admin Dashboard if they are an ADMIN #}
                 {% if is_granted('ROLE_ADMIN') %}
-                    <a href="{{ path('app_admin_dashboard') }}" style="color: #e67e22;">Admin Dashboard</a>
+                    <a href="{{ path('app_admin_dashboard') }}" class="nav-admin">⚙ Admin</a>
                 {% endif %}
             </div>
 
             <div class="nav-auth">
                 {% if app.user %}
-                    <span style="font-weight: bold; color: #2c3e50;">Hi, {{ app.user.firstName }}!</span>
-                    <a href="{{ path('app_logout') }}" style="color: #e74c3c; text-decoration: none; font-weight: bold;">Log Out</a>
+                    <span class="nav-greeting">Hi, {{ app.user.firstName }}!</span>
+                    <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm">Log Out</a>
                 {% else %}
-                    <a href="{{ path('app_login') }}" style="color: #0056b3; text-decoration: none; font-weight: bold;">Log In</a>
-                    <a href="/register" style="background-color: #0056b3; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: bold;">Register</a>
+                    <a href="{{ path('app_login') }}" class="btn btn-ghost btn-sm">Log In</a>
+                    <a href="/register" class="btn btn-primary btn-sm">Register</a>
                 {% endif %}
             </div>
         </nav>
 
         <div class="global-alerts">
             {% for message in app.flashes('success') %}
-                <div class="alert alert-success">{{ message }}</div>
+                <div class="alert alert-success">✓ {{ message }}</div>
             {% endfor %}
             {% for message in app.flashes('error') %}
-                <div class="alert alert-error">{{ message }}</div>
+                <div class="alert alert-error">⚠ {{ message }}</div>
             {% endfor %}
         </div>
 
-        <div>
-            {% block body %}{% endblock %}
-        </div>
-        
+        {% block body %}{% endblock %}
+
         {% block javascripts %}{% endblock %}
     </body>
 </html>

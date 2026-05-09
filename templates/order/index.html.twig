@@ -1,40 +1,39 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}My Orders - ADDmeCART{% endblock %}
+{% block title %}My Orders — ADDmeCART{% endblock %}
 
 {% block body %}
-<div style="max-width: 800px; margin: 40px auto; padding: 20px;">
-    <h2 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">Order History & Receipts</h2>
+<div class="page-wrapper-medium">
+
+    <h1 class="page-title">Order History</h1>
+    <p class="page-subtitle">Track and view your past orders</p>
 
     {% if orders is empty %}
-        <p style="color: #7f8fa6;">You haven't placed any orders yet.</p>
+        <div class="empty-state">
+            <div class="empty-state__icon">📦</div>
+            <div class="empty-state__title">No orders yet</div>
+            <div class="empty-state__text" style="margin-bottom:20px;">You haven't placed any orders yet.</div>
+            <a href="{{ path('app_product_catalog') }}" class="btn btn-primary">Start Shopping</a>
+        </div>
     {% else %}
         {% for order in orders %}
-            <div style="background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div class="order-card">
+                <div class="order-card__header">
                     <div>
-                        {# THE FIX: Show Alphanumeric Reference Number or fallback to ID #}
-                        <strong style="font-size: 1.1em;">Order #{{ order.referenceNumber|default(order.id) }}</strong>
-                        <div style="color: #7f8fa6; font-size: 0.9em;">Placed on: {{ order.createdAt|date('M d, Y h:i A') }}</div>
+                        <div class="order-ref">Order #{{ order.referenceNumber|default(order.id) }}</div>
+                        <div class="order-date">Placed on {{ order.createdAt|date('M d, Y h:i A') }}</div>
                     </div>
-                    <div style="font-size: 1.2em; font-weight: bold; color: #2ecc71;">
-                        ₱{{ order.totalAmount|number_format(2) }}
-                    </div>
+                    <div class="order-amount">₱{{ order.totalAmount|number_format(2) }}</div>
                 </div>
-                
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="background: #e1f5fe; color: #0288d1; padding: 5px 10px; border-radius: 4px; font-size: 0.85em; font-weight: bold;">
-                        {# THE FIX: Dynamic Database Status #}
-                        Status: {{ order.orderStatus }}
-                    </span>
-                    
-                    {# THE LINK TO BUG 3: Dynamic Tracking Button #}
-                    <a href="{{ path('app_order_tracking', {'id': order.id}) }}" style="background: #3498db; color: white; padding: 8px 15px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 0.9em;">
-                        Track Order
+                <div class="order-card__footer">
+                    <span class="badge badge-blue">{{ order.orderStatus }}</span>
+                    <a href="{{ path('app_order_tracking', {'id': order.id}) }}" class="btn btn-primary btn-sm">
+                        Track Order →
                     </a>
                 </div>
             </div>
         {% endfor %}
     {% endif %}
+
 </div>
 {% endblock %}

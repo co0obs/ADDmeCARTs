@@ -1,60 +1,78 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}My Profile - ADDmeCART{% endblock %}
+{% block title %}Seller Profile — ADDmeCART{% endblock %}
 
 {% block body %}
-<div style="max-width: 600px; margin: 40px auto; padding: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-    <h2 style="color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">My Seller Profile</h2>
+<div class="page-wrapper-medium">
 
-    {% for message in app.flashes('success') %}
-        <div style="background-color: #d4edda; color: #155724; padding: 12px; border-radius: 6px; margin-bottom: 20px;">
-            <strong>✓ Success:</strong> {{ message }}
+    <h1 class="page-title">My Seller Profile</h1>
+    <p class="page-subtitle">Manage your store information and inventory</p>
+
+    <div class="card" style="margin-bottom:32px;">
+        <div class="card-header">Store Settings</div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="form-group">
+                    <label>Store Name</label>
+                    <input type="text" name="storeName" value="{{ user.storeName }}" placeholder="e.g. Jacob's Tech Shop">
+                    <p class="form-hint">This name appears on all your product listings.</p>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Store Name</button>
+            </form>
         </div>
-    {% endfor %}
+    </div>
 
-    <form method="POST" style="margin-top: 20px;">
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; color: #555; font-weight: bold; margin-bottom: 8px;">Store Name</label>
-            <input type="text" name="storeName" value="{{ user.storeName }}" placeholder="e.g. Jacob's Tech Shop" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em;">
-            <small style="color: #7f8fa6; display: block; margin-top: 5px;">This is the name customers will see on your products.</small>
+    <div class="card">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            My Inventory
+            <a href="{{ path('app_product_new') }}" class="btn btn-success btn-sm">+ Add Product</a>
         </div>
+        <div class="card-body" style="padding:0;">
+            {% if products is empty %}
+                <div class="empty-state">
+                    <div class="empty-state__icon">📦</div>
+                    <div class="empty-state__title">No products listed yet</div>
+                    <div class="empty-state__text">Add your first product to start selling.</div>
+                </div>
+            {% else %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in products %}
+                            <tr>
+                                <td style="font-weight:600;">{{ item.name }}</td>
+                                <td>₱{{ item.price }}</td>
+                                <td>
+                                    {% if item.stockQuantity > 0 %}
+                                        <span class="badge badge-green">{{ item.stockQuantity }} units</span>
+                                    {% else %}
+                                        <span class="badge badge-red">Out of Stock</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display:flex; gap:8px; align-items:center;">
+                                        <a href="{{ path('app_product_edit', {'id': item.id}) }}" class="btn btn-ghost btn-sm">Edit</a>
+                                        <form method="post" action="{{ path('app_product_delete', {'id': item.id}) }}"
+                                              onsubmit="return confirm('Delete {{ item.name }}?');" style="margin:0;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
+                                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
 
-        <button type="submit" style="background-color: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 4px; font-size: 1em; font-weight: bold; cursor: pointer;">
-            Save Store Name
-        </button>
-    </form>
-
-    {# --- NEW: MY PRODUCTS DASHBOARD --- #}
-    <h3 style="margin-top: 50px; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px;">My Inventory</h3>
-    
-    {% if products is empty %}
-        <p style="color: #7f8fa6; margin-top: 15px;">You haven't listed any products yet.</p>
-    {% else %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.95em;">
-            <tr style="background-color: #f8f9fa; text-align: left;">
-                <th style="padding: 12px; border-bottom: 2px solid #ddd;">Product Name</th>
-                <th style="padding: 12px; border-bottom: 2px solid #ddd;">Price</th>
-                <th style="padding: 12px; border-bottom: 2px solid #ddd;">Stock</th>
-                <th style="padding: 12px; border-bottom: 2px solid #ddd;">Actions</th>
-            </tr>
-            {% for item in products %}
-            <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ item.name }}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #eee;">₱{{ item.price }}</td>
-                <td style="padding: 12px; border-bottom: 1px solid #eee;">{{ item.stockQuantity }} units</td>
-                <td style="padding: 12px; border-bottom: 1px solid #eee; display: flex; gap: 15px;">
-                    {# Edit Button #}
-                    <a href="{{ path('app_product_edit', {'id': item.id}) }}" style="color: #3498db; text-decoration: none; font-weight: bold;">Edit</a>
-                    
-                    {# Delete Button (Uses a tiny form for security) #}
-                    <form method="post" action="{{ path('app_product_delete', {'id': item.id}) }}" onsubmit="return confirm('Are you sure you want to delete {{ item.name }}?');" style="margin: 0;">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
-                        <button type="submit" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: bold; padding: 0;">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% endif %}    
 </div>
 {% endblock %}

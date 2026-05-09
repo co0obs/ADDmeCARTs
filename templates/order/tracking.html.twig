@@ -1,105 +1,118 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Track Order - ADDmeCART{% endblock %}
+{% block title %}Live Tracking — ADDmeCART{% endblock %}
+
+{% block stylesheets %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+{% endblock %}
 
 {% block body %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<div class="page-wrapper">
 
-<div style="background-color: #ffffff; padding: 40px; min-height: 80vh;">
-    <div style="max-width: 900px; margin: 0 auto;">
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 30px;">
-            <h1 style="color: #333; margin: 0;">Order #{{ order.referenceNumber|default(order.id) }}</h1>
-            <span style="background-color: #e2e3e5; padding: 8px 16px; border-radius: 20px; font-weight: bold; color: #555;">
-                Tracking #: {{ trackingNumber|default(order.trackingNumber) }}
-            </span>
-        </div>
+    <a href="{{ path('app_user_orders') }}" class="back-link">← Back to My Orders</a>
 
-        {# ========================================== #}
-        {# TOP SECTION: Map & Status                  #}
-        {# ========================================== #}
-        <div style="display: flex; gap: 30px;">
-            
-            <div style="flex: 1; padding: 25px; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <h3 style="margin-top: 0; color: #0056b3;">Delivery Status</h3>
-                
-                <h2 id="liveStatus" style="color: #28a745; margin-bottom: 5px;">Fetching Status...</h2>
-                <p style="color: #666; margin-top: 0; margin-bottom: 25px;">Estimated Arrival: <strong>{{ eta|default('Today, 4:30 PM') }}</strong></p>
-                
-                <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
-                
-                <p style="margin: 5px 0; color: #555;"><strong>Courier:</strong> <span id="courierName">--</span></p>
-                <p style="margin: 5px 0; color: #555;"><strong>Driver:</strong> <span id="driverName">--</span></p>
-                <p style="margin: 5px 0; color: #555;"><strong>Last Update:</strong> <span id="lastUpdate">--</span></p>
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:28px;">
+        <h1 class="page-title" style="margin-bottom:0;">
+            Order #{{ order.referenceNumber|default(order.id) }}
+        </h1>
+        <span class="badge badge-gray" style="font-family: var(--font-mono); font-size:0.8rem; padding:6px 14px;">
+            Tracking #: {{ trackingNumber|default(order.trackingNumber) }}
+        </span>
+    </div>
 
-                <button onclick="fetchTrackingData()" style="margin-top: 25px; width: 100%; padding: 12px; background-color: #0056b3; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                    ↻ Refresh Live GPS
+    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:24px; margin-bottom:28px;">
+
+        {# Status Panel #}
+        <div class="card">
+            <div class="card-header">Delivery Status</div>
+            <div class="card-body">
+                <div id="liveStatus" style="font-size:1.3rem; font-weight:800; color: var(--success); margin-bottom:4px;">
+                    Fetching…
+                </div>
+                <p style="color: var(--text-muted); font-size:0.875rem; margin-bottom:20px;">
+                    ETA: <strong>{{ eta|default('Today, 4:30 PM') }}</strong>
+                </p>
+
+                <hr class="section-divider">
+
+                <div style="display:flex; flex-direction:column; gap:8px; font-size:0.875rem;">
+                    <div><span style="color: var(--text-muted);">Courier:</span> <strong id="courierName">—</strong></div>
+                    <div><span style="color: var(--text-muted);">Driver:</span> <strong id="driverName">—</strong></div>
+                    <div><span style="color: var(--text-muted);">Last Update:</span> <strong id="lastUpdate">—</strong></div>
+                </div>
+
+                <button onclick="fetchTrackingData()" class="btn btn-primary btn-block" style="margin-top:20px;">
+                    ↻ Refresh GPS
                 </button>
             </div>
-
-            <div style="flex: 2; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                <div id="gpsMap" style="height: 400px; width: 100%; background-color: #f8f9fa;"></div>
-            </div>
-            
         </div>
 
-        {# ========================================== #}
-        {# BOTTOM SECTION: Items Ordered              #}
-        {# ========================================== #}
-        <div style="margin-top: 30px; background: #ffffff; padding: 25px; border-radius: 8px; border: 1px solid #e0e0e0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-            <h3 style="margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 15px;">Order Summary</h3>
-            
-            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 1em;">
+        {# Map #}
+        <div class="card" style="overflow:hidden;">
+            <div id="gpsMap" style="height:380px; width:100%;"></div>
+        </div>
+
+    </div>
+
+    {# Order Summary #}
+    <div class="card">
+        <div class="card-header">Order Summary</div>
+        <div class="card-body" style="padding:0;">
+            <table class="data-table">
                 <tbody>
                     {% for item in order.orderItems %}
-                        <tr style="border-bottom: 1px solid #f5f6fa;">
-                            <td style="padding: 12px 0; display: flex; align-items: center; gap: 15px;">
-                                {# Product Image Thumbnail #}
-                                <div style="width: 50px; height: 50px; border-radius: 6px; overflow: hidden; border: 1px solid #eee; background-color: #f8f9fa; display: flex; justify-content: center; align-items: center;">
-                                    <img src="{{ item.product.thumbnailImage|default('https://via.placeholder.com/50?text=No+Img') }}" alt="{{ item.product.name }}" style="max-width: 100%; max-height: 100%; object-fit: cover;">
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div style="width:44px; height:44px; border-radius: var(--radius-md); overflow:hidden; border:1px solid var(--border); background: var(--bg); flex-shrink:0;">
+                                        <img src="{{ item.product.thumbnailImage|default('https://via.placeholder.com/44?text=?') }}"
+                                             alt="{{ item.product.name }}"
+                                             style="width:100%; height:100%; object-fit:cover;">
+                                    </div>
+                                    <span style="font-weight:600;">{{ item.product.name }}</span>
                                 </div>
-                                <span style="color: #444; font-weight: 500;">{{ item.product.name }}</span>
                             </td>
-                            <td style="padding: 12px 0; text-align: center; color: #777; vertical-align: middle;">x{{ item.quantity }}</td>
-                            <td style="padding: 12px 0; text-align: right; color: #333; font-weight: bold; vertical-align: middle;">₱{{ (item.price * item.quantity)|number_format(2) }}</td>
+                            <td style="text-align:center; color: var(--text-muted);">×{{ item.quantity }}</td>
+                            <td style="text-align:right; font-weight:700;">₱{{ (item.price * item.quantity)|number_format(2) }}</td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="3" style="padding: 20px 0; text-align: center; color: #e74c3c; font-style: italic; background-color: #fdf5f5; border-radius: 4px;">
-                                Old order format. Item details were not saved prior to database update.
+                            <td colspan="3" style="text-align:center; color: var(--danger); font-style:italic; padding:20px;">
+                                Old order format — item details not available.
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="2" style="text-align: right; padding-top: 20px; font-weight: bold; color: #555; font-size: 1.1em;">Grand Total:</td>
-                        <td style="text-align: right; padding-top: 20px; font-weight: bold; color: #2ecc71; font-size: 1.2em;">₱{{ order.totalAmount|number_format(2) }}</td>
+                        <td colspan="2" style="text-align:right; font-weight:700; color: var(--text-secondary); padding:16px;">Grand Total</td>
+                        <td style="text-align:right; font-weight:800; color: var(--success); font-size:1.1rem; padding:16px;">
+                            ₱{{ order.totalAmount|number_format(2) }}
+                        </td>
                     </tr>
                 </tfoot>
             </table>
         </div>
-
     </div>
+
 </div>
 
+{% block javascripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     let map, marker;
 
     document.addEventListener('DOMContentLoaded', function() {
         map = L.map('gpsMap').setView([12.8797, 121.7740], 5);
-        
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
-
         fetchTrackingData();
     });
 
     function fetchTrackingData() {
         fetch('/api/mock-logistics-tracking')
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 document.getElementById('liveStatus').innerText = data.current_status;
                 document.getElementById('courierName').innerText = data.courier;
@@ -107,17 +120,17 @@
                 document.getElementById('lastUpdate').innerText = data.last_update;
 
                 const latLng = [data.current_location.lat, data.current_location.lng];
-                
                 if (!marker) {
                     marker = L.marker(latLng).addTo(map)
-                        .bindPopup("<b>Package Location</b><br>Driver is nearby!").openPopup();
+                        .bindPopup('<b>Package Location</b><br>Driver is nearby!').openPopup();
                 } else {
                     marker.setLatLng(latLng);
                 }
-                
                 map.setView(latLng, 14);
             })
-            .catch(error => console.error('Error fetching tracking data:', error));
+            .catch(err => console.error('Tracking error:', err));
     }
 </script>
+{% endblock %}
+
 {% endblock %}
