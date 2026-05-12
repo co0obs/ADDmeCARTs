@@ -68,11 +68,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: SupportTicket::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $supportTickets;
 
+    /**
+     * @var Collection<int, Notification>
+     */
+    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $notifications;
+
     public function __construct()
     {
         $this->products = new ArrayCollection();
         $this->wishlists = new ArrayCollection();
         $this->supportTickets = new ArrayCollection();
+        $this->notifications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -285,5 +292,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getNotifications(): Collection
+    {
+        return $this->notifications;
+    }
+
+    public function addNotification(Notification $notification): static
+    {
+        if (!$this->notifications->contains($notification)) {
+            $this->notifications->add($notification);
+            $notification->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNotification(Notification $notification): static
+    {
+        if ($this->notifications->removeElement($notification)) {
+            if ($notification->getUser() === $this) {
+                $notification->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getUnreadNotifications(): Collection
+    {
+        return $this->notifications->filter(fn(Notification $n) => !$n->isRead());
     }
 }

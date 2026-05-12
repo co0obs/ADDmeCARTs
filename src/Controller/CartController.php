@@ -101,7 +101,7 @@ class CartController extends AbstractController
         $groupedItems = [];
         
         foreach ($cartItems as $item) {
-            $total += $item->getProduct()->getPrice() * $item->getQuantity();
+            $total += $item->getProduct()->getEffectivePrice() * $item->getQuantity();
             
             $seller = $item->getProduct()->getSeller();
             $storeName = ($seller && $seller->getStoreName()) ? $seller->getStoreName() : 'ADDmeCART Official';

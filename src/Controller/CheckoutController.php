@@ -44,7 +44,7 @@ class CheckoutController extends AbstractController
                 if (in_array($item->getId(), $selectedItems)) {
                     $totalItems += $item->getQuantity();
                     // Match the exact math from the CartController
-                    $total += $item->getProduct()->getPrice() * $item->getQuantity();
+                    $total += $item->getProduct()->getEffectivePrice() * $item->getQuantity();
                 }
             }
         }
@@ -119,7 +119,7 @@ class CheckoutController extends AbstractController
                 }
 
                 $totalItemsInCart += $item->getQuantity();
-                $realTotal += $product->getPrice() * $item->getQuantity();
+                $realTotal += $product->getEffectivePrice() * $item->getQuantity();
             }
         }
         
@@ -186,7 +186,7 @@ class CheckoutController extends AbstractController
                 $orderItem = new OrderItem();
                 $orderItem->setProduct($product);
                 $orderItem->setQuantity($cartItem->getQuantity());
-                $orderItem->setPrice($product->getPrice()); // Lock in today's price!
+                $orderItem->setPrice($product->getEffectivePrice()); // Lock in today's price!
                 $orderItem->setOrderRef($order); // Attach it to the receipt
                 $entityManager->persist($orderItem);
 

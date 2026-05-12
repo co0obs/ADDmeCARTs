@@ -39,8 +39,14 @@
                 {% endif %}
             </div>
 
-            <div class="nav-auth">
+            <div class="nav-auth" style="display: flex; align-items: center; gap: 16px;">
                 {% if app.user %}
+                    <a href="{{ path('app_notification_index') }}" style="text-decoration: none; position: relative; color: inherit; font-size: 1.2rem;" title="Notifications">
+                        🔔
+                        {% if app.user.unreadNotifications|length > 0 %}
+                            <span class="badge badge-red" style="position: absolute; top: -8px; right: -8px; font-size: 0.6rem; padding: 2px 4px;">{{ app.user.unreadNotifications|length }}</span>
+                        {% endif %}
+                    </a>
                     <span class="nav-greeting">Hi, {{ app.user.firstName }}!</span>
                     <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm">Log Out</a>
                 {% else %}

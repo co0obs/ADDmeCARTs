@@ -16,6 +16,39 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
+    /**
+     * Search products by keyword, filter by category/rating, and sort by price.
+     */
+    public function searchAndFilter(?string $keyword, ?string $category, ?int $minStars, ?string $sort): array
+    {
+        $qb = $this->createQueryBuilder('p');
+
+        if ($keyword) {
+            $qb->andWhere('p.name LIKE :keyword OR p.description LIKE :keyword')
+               ->setParameter('keyword', '%' . $keyword . '%');
+        }
+
+        if ($category && $category !== 'all') {
+            $qb->andWhere('p.category = :category')
+               ->setParameter('category', $category);
+        }
+
+        if ($minStars && $minStars > 0) {
+            $qb->andWhere('p.starRating >= :minStars')
+               ->setParameter('minStars', (float) $minStars);
+        }
+
+        if ($sort === 'price_asc') {
+            $qb->orderBy('COALESCE(p.salePrice, p.price)', 'ASC');
+        } elseif ($sort === 'price_desc') {
+            $qb->orderBy('COALESCE(p.salePrice, p.price)', 'DESC');
+        } else {
+            $qb->orderBy('p.id', 'DESC');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
 //    /**
 //     * @return Product[] Returns an array of Product objects
 //     */

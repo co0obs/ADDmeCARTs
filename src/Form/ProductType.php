@@ -16,6 +16,10 @@ class ProductType extends AbstractType
             ->add('name')
             ->add('description')
             ->add('price')
+            ->add('salePrice', null, [
+                'required' => false,
+                'label' => 'Sale Price (Optional)'
+            ])
             ->add('stockQuantity')
             
             // Category Dropdown

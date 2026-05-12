@@ -34,7 +34,7 @@
                 {% for item in items %}
                     <div style="display: grid; grid-template-columns: 40px 2fr 1fr 1fr 1fr 100px; gap: 16px; padding: 20px 24px; align-items: center; border-bottom: 1px solid var(--border);">
                         <div style="display: flex; justify-content: center;">
-                            <input type="checkbox" name="selected_items[]" value="{{ item.id }}" class="item-checkbox" data-store="{{ storeName|e('html_attr') }}" data-price="{{ item.product.price * item.quantity }}" style="cursor: pointer; width: 18px; height: 18px;">
+                            <input type="checkbox" name="selected_items[]" value="{{ item.id }}" class="item-checkbox" data-store="{{ storeName|e('html_attr') }}" data-price="{{ item.product.effectivePrice * item.quantity }}" style="cursor: pointer; width: 18px; height: 18px;">
                         </div>
     
                         {# Product #}
@@ -60,7 +60,12 @@
     
                         {# Unit Price #}
                         <div style="text-align: center; font-weight: 600; color: var(--text-secondary);">
-                            ₱{{ item.product.price|number_format(2) }}
+                            {% if item.product.salePrice %}
+                                <div style="text-decoration: line-through; font-size: 0.8rem; color: var(--text-muted);">₱{{ item.product.price|number_format(2) }}</div>
+                                <div style="color: #e11d48;">₱{{ item.product.salePrice|number_format(2) }}</div>
+                            {% else %}
+                                ₱{{ item.product.price|number_format(2) }}
+                            {% endif %}
                         </div>
     
                         {# Quantity #}
@@ -74,7 +79,7 @@
     
                         {# Total Price #}
                         <div style="text-align: center; font-weight: 800; color: var(--primary); font-size: 1.05rem;">
-                            ₱{{ (item.product.price * item.quantity)|number_format(2) }}
+                            ₱{{ (item.product.effectivePrice * item.quantity)|number_format(2) }}
                         </div>
     
                         {# Actions #}

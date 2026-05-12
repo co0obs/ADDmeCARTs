@@ -23,6 +23,9 @@ class Product
     #[ORM\Column]
     private ?float $price = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?float $salePrice = null;
+
     #[ORM\Column]
     private ?int $stockQuantity = null;
 
@@ -77,6 +80,23 @@ class Product
         $this->price = $price;
 
         return $this;
+    }
+
+    public function getSalePrice(): ?float
+    {
+        return $this->salePrice;
+    }
+
+    public function setSalePrice(?float $salePrice): static
+    {
+        $this->salePrice = $salePrice;
+
+        return $this;
+    }
+
+    public function getEffectivePrice(): float
+    {
+        return $this->salePrice !== null ? $this->salePrice : $this->price;
     }
 
     public function getStockQuantity(): ?int

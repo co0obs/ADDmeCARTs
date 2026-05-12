@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications — ADDmeCART{% endblock %}
+
+{% block body %}
+<div class="page-wrapper-medium">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h1 class="page-title" style="margin-bottom: 0;">My Notifications</h1>
+        {% if app.user.unreadNotifications|length > 0 %}
+            <form action="{{ path('app_notification_read_all') }}" method="POST" style="margin: 0;">
+                <button class="btn btn-ghost btn-sm">Mark All as Read</button>
+            </form>
+        {% endif %}
+    </div>
+
+    {% if notifications is empty %}
+        <div class="empty-state">
+            <div class="empty-state__icon">🔔</div>
+            <div class="empty-state__title">No notifications</div>
+            <div class="empty-state__text">You're all caught up!</div>
+        </div>
+    {% else %}
+        <div class="card" style="padding: 0;">
+            {% for note in notifications %}
+                <div style="padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; background: {{ note.isRead ? 'var(--card-bg)' : '#f8f9fc' }};">
+                    <div style="font-size: 1.5rem;">
+                        {% if note.isRead %}
+                            <span style="color: var(--text-muted);">✉️</span>
+                        {% else %}
+                            <span style="color: var(--primary);">🔔</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <p style="margin: 0 0 4px; font-weight: {{ note.isRead ? '400' : '600' }}; color: var(--text);">
+                            {{ note.message }}
+                        </p>
+                        <small style="color: var(--text-muted);">{{ note.createdAt|date('M d, Y g:i A') }}</small>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        {% if not note.isRead %}
+                            <form action="{{ path('app_notification_read_single', {id: note.id}) }}" method="POST" style="margin: 0;">
+                                <button class="btn btn-ghost btn-sm">✓ Mark as Read</button>
+                            </form>
+                        {% endif %}
+                        {% if note.link %}
+                            <a href="{{ note.link }}" class="btn btn-primary btn-sm">View</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

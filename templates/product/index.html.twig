@@ -15,14 +15,56 @@
         {% endif %}
     </div>
 
-    {# --- SEARCH BAR --- #}
-    <div class="search-bar">
-        <form method="get" action="{{ path('app_product_catalog') }}" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-            <input type="text" name="q" value="{{ app.request.query.get('q') }}" placeholder="Search by name or category…" style="min-width:240px;">
-            <button type="submit" class="btn btn-primary">Search</button>
-            {% if app.request.query.get('q') %}
-                <a href="{{ path('app_product_catalog') }}" class="btn btn-ghost">✕ Clear</a>
-            {% endif %}
+    {# --- SEARCH & FILTERS --- #}
+    <div class="search-bar" style="background: var(--surface); padding: 20px; border-radius: var(--radius-lg); border: 1px solid var(--border); box-shadow: var(--shadow-sm);">
+        <form method="get" action="{{ path('app_product_catalog') }}" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; align-items:end; width:100%;">
+            
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Search Keyword</label>
+                <input type="text" name="q" value="{{ currentKeyword|default('') }}" placeholder="Search by name or description…">
+            </div>
+
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Category</label>
+                <select name="category">
+                    <option value="all">All Categories</option>
+                    <option value="Electronics" {{ currentCategory|default('') == 'Electronics' ? 'selected' }}>Electronics & Gadgets</option>
+                    <option value="Clothing" {{ currentCategory|default('') == 'Clothing' ? 'selected' }}>Clothing & Apparel</option>
+                    <option value="Home" {{ currentCategory|default('') == 'Home' ? 'selected' }}>Home & Living</option>
+                    <option value="Sports" {{ currentCategory|default('') == 'Sports' ? 'selected' }}>Sports & Outdoors</option>
+                    <option value="Beauty" {{ currentCategory|default('') == 'Beauty' ? 'selected' }}>Health & Beauty</option>
+                    <option value="Toys" {{ currentCategory|default('') == 'Toys' ? 'selected' }}>Toys & Hobbies</option>
+                    <option value="Other" {{ currentCategory|default('') == 'Other' ? 'selected' }}>Other</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Minimum Rating</label>
+                <select name="stars">
+                    <option value="0">Any Rating</option>
+                    <option value="1" {{ currentStars|default(0) == 1 ? 'selected' }}>1+ Star</option>
+                    <option value="2" {{ currentStars|default(0) == 2 ? 'selected' }}>2+ Stars</option>
+                    <option value="3" {{ currentStars|default(0) == 3 ? 'selected' }}>3+ Stars</option>
+                    <option value="4" {{ currentStars|default(0) == 4 ? 'selected' }}>4+ Stars</option>
+                    <option value="5" {{ currentStars|default(0) == 5 ? 'selected' }}>5 Stars</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Sort By Price</label>
+                <select name="sort">
+                    <option value="default">Default</option>
+                    <option value="price_asc" {{ currentSort|default('') == 'price_asc' ? 'selected' }}>Lowest to Highest</option>
+                    <option value="price_desc" {{ currentSort|default('') == 'price_desc' ? 'selected' }}>Highest to Lowest</option>
+                </select>
+            </div>
+
+            <div style="display:flex; gap:8px;">
+                <button type="submit" class="btn btn-primary" style="flex:1;">Apply Filters</button>
+                {% if currentKeyword|default('') or (currentCategory|default('') and currentCategory|default('') != 'all') or currentStars|default(0) or (currentSort|default('') and currentSort|default('') != 'default') %}
+                    <a href="{{ path('app_product_catalog') }}" class="btn btn-ghost" title="Clear Filters">✕</a>
+                {% endif %}
+            </div>
         </form>
     </div>
 
@@ -32,7 +74,7 @@
             <div class="product-card">
 
                 {% if product.thumbnailImage %}
-                    <img src="{{ product.thumbnailImage }}" alt="{{ product.name }}" class="product-card__image">
+                    <img src="{{ asset(product.thumbnailImage) }}" alt="{{ product.name }}" class="product-card__image">
                 {% else %}
                     <div class="product-card__image-placeholder">No Image</div>
                 {% endif %}
@@ -43,10 +85,27 @@
                     <div class="product-card__seller">
                         Sold by <strong>{{ product.seller.storeName|default('ADDmeCART Official') }}</strong>
                     </div>
+
+                    {% if product.starRating %}
+                        <div style="color: #f59e0b; font-size: 0.9rem; margin-bottom: 8px;">
+                            {% for i in 1..5 %}
+                                {{ i <= product.starRating|round ? '★' : '☆' }}
+                            {% endfor %}
+                            <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 4px;">({{ product.starRating|number_format(1) }})</span>
+                        </div>
+                    {% endif %}
+
                     <p class="product-card__desc">{{ product.description }}</p>
 
                     <div class="product-card__footer" style="margin-bottom: 12px;">
-                        <span class="product-card__price">₱{{ product.price|number_format(2) }}</span>
+                        {% if product.salePrice %}
+                            <div>
+                                <span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.9rem; margin-right: 8px;">₱{{ product.price|number_format(2) }}</span>
+                                <span class="product-card__price" style="color: #e11d48;">₱{{ product.salePrice|number_format(2) }}</span>
+                            </div>
+                        {% else %}
+                            <span class="product-card__price">₱{{ product.price|number_format(2) }}</span>
+                        {% endif %}
                         {% if product.stockQuantity > 0 %}
                             <span class="product-card__stock">{{ product.stockQuantity }} left</span>
                         {% else %}
