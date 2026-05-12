@@ -8,8 +8,8 @@
     <h1 class="page-title">{% if 'ROLE_SELLER' in user.roles %}My Seller Profile{% else %}My Profile{% endif %}</h1>
     <p class="page-subtitle">Manage your account information and delivery addresses</p>
 
-    {# --- Delivery Addresses (only for customers, not sellers) --- #}
-    {% if 'ROLE_SELLER' not in user.roles %}
+    {# --- Delivery Addresses (only for customers - no sellers or admins) --- #}
+    {% if 'ROLE_SELLER' not in user.roles and 'ROLE_ADMIN' not in user.roles %}
     <div class="card" style="margin-bottom:32px;">
         <div class="card-header">Delivery Addresses (Up to 3)</div>
         <div class="card-body">
