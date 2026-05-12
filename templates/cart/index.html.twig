@@ -62,7 +62,7 @@
                         <div style="text-align: center; font-weight: 600; color: var(--text-secondary);">
                             {% if item.product.salePrice %}
                                 <div style="text-decoration: line-through; font-size: 0.8rem; color: var(--text-muted);">₱{{ item.product.price|number_format(2) }}</div>
-                                <div style="color: #e11d48;">₱{{ item.product.salePrice|number_format(2) }}</div>
+                                <div style="color: var(--primary);">₱{{ item.product.salePrice|number_format(2) }}</div>
                             {% else %}
                                 ₱{{ item.product.price|number_format(2) }}
                             {% endif %}

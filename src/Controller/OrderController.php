@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Order;
+use App\Entity\Review;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,8 +23,18 @@ class OrderController extends AbstractController
             ['createdAt' => 'DESC']
         );
 
+        // Get reviews made by this user on completed orders
+        $reviews = $entityManager->getRepository(Review::class)->findBy([
+            'user' => $this->getUser(),
+        ]);
+        $reviewedProductIds = [];
+        foreach ($reviews as $review) {
+            $reviewedProductIds[] = $review->getProduct()->getId();
+        }
+
         return $this->render('order/index.html.twig', [
             'orders' => $orders,
+            'reviewedProductIds' => $reviewedProductIds,
         ]);
     }
 }

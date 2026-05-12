@@ -22,6 +22,10 @@ class Review
     #[ORM\JoinColumn(nullable: false)]
     private ?Product $product = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Order $order = null;
+
     #[ORM\Column]
     private ?int $rating = null;
 
@@ -66,6 +70,17 @@ class Review
     public function setProduct(?Product $product): static
     {
         $this->product = $product;
+        return $this;
+    }
+
+    public function getOrder(): ?Order
+    {
+        return $this->order;
+    }
+
+    public function setOrder(?Order $order): static
+    {
+        $this->order = $order;
         return $this;
     }
 

@@ -100,7 +100,7 @@
                                 <td>
                                     {% if item.salePrice %}
                                         <div style="text-decoration: line-through; color: var(--text-muted); font-size: 0.85rem;">₱{{ item.price }}</div>
-                                        <div style="color: #e11d48; font-weight: 600;">₱{{ item.salePrice }}</div>
+                                        <div style="color: var(--primary); font-weight: 600;">₱{{ item.salePrice }}</div>
                                     {% else %}
                                         ₱{{ item.price }}
                                     {% endif %}

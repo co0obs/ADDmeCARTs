@@ -111,7 +111,7 @@
                         {% if product.salePrice %}
                             <div>
                                 <span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.9rem; margin-right: 8px;">₱{{ product.price|number_format(2) }}</span>
-                                <span class="product-card__price" style="color: #e11d48;">₱{{ product.salePrice|number_format(2) }}</span>
+                                <span class="product-card__price">₱{{ product.salePrice|number_format(2) }}</span>
                             </div>
                         {% else %}
                             <span class="product-card__price">₱{{ product.price|number_format(2) }}</span>

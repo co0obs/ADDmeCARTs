@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Product;
 use App\Entity\Review;
 use App\Entity\Notification;
+use App\Entity\Order;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
 use App\Repository\ReviewRepository;
@@ -65,16 +66,59 @@ class ProductController extends AbstractController
         $rating  = $request->request->getInt('rating');
         $comment = $request->request->get('comment');
 
+        // Get order_id from POST or GET (query string)
+        $orderId = $request->request->get('order_id') ?? $request->query->get('order_id');
+
         if ($rating < 1 || $rating > 5) {
             $this->addFlash('error', 'Please select a valid rating (1-5 stars).');
             return $this->redirectToRoute('app_product_show', ['id' => $product->getId()]);
         }
 
+        // Verify the user has a completed order for this product
+        $user = $this->getUser();
+        $hasCompletedOrder = false;
+        $order = null;
+
+        if ($orderId) {
+            $order = $entityManager->getRepository(Order::class)->find($orderId);
+            if ($order && $order->getUser() === $user && $order->getOrderStatus() === 'Completed') {
+                // Check if this product is in the order
+                foreach ($order->getOrderItems() as $item) {
+                    if ($item->getProduct()->getId() === $product->getId()) {
+                        $hasCompletedOrder = true;
+                        break;
+                    }
+                }
+            }
+        } else {
+            // If no order_id provided, check if user has any completed order with this product
+            $orders = $entityManager->getRepository(Order::class)->findBy([
+                'user' => $user,
+                'orderStatus' => 'Completed',
+            ]);
+            foreach ($orders as $completedOrder) {
+                foreach ($completedOrder->getOrderItems() as $item) {
+                    if ($item->getProduct()->getId() === $product->getId()) {
+                        $hasCompletedOrder = true;
+                        $order = $completedOrder;
+                        break;
+                    }
+                }
+                if ($hasCompletedOrder) break;
+            }
+        }
+
+        if (!$hasCompletedOrder) {
+            $this->addFlash('error', 'You can only review products from completed/delivered orders.');
+            return $this->redirectToRoute('app_product_show', ['id' => $product->getId()]);
+        }
+
         $review = new Review();
-        $review->setUser($this->getUser());
+        $review->setUser($user);
         $review->setProduct($product);
         $review->setRating($rating);
         $review->setComment($comment);
+        $review->setOrder($order);
 
         $entityManager->persist($review);
 

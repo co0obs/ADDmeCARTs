@@ -17,6 +17,18 @@
         </div>
     {% else %}
         {% for order in orders %}
+            {# Determine if order has unreviewed products #}
+            {% set hasUnreviewedItems = false %}
+            {% set firstUnreviewedProduct = null %}
+            {% if order.orderStatus == 'Completed' %}
+                {% for item in order.orderItems %}
+                    {% if item.product.id not in reviewedProductIds %}
+                        {% set hasUnreviewedItems = true %}
+                        {% set firstUnreviewedProduct = item.product %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
             <div class="order-card">
                 <div class="order-card__header">
                     <div>
@@ -25,6 +37,7 @@
                     </div>
                     <div class="order-amount">₱{{ order.totalAmount|number_format(2) }}</div>
                 </div>
+
                 <div class="order-card__footer">
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <span class="badge badge-blue">{{ order.orderStatus }}</span>
@@ -34,9 +47,16 @@
                             <span class="badge" style="background: #dbeafe; color: #1d4ed8;">📱 GCash</span>
                         {% endif %}
                     </div>
-                    <a href="{{ path('app_order_tracking', {'id': order.id}) }}" class="btn btn-primary btn-sm">
-                        Track Order →
-                    </a>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="{{ path('app_order_tracking', {'id': order.id}) }}" class="btn btn-primary btn-sm">
+                            View Details
+                        </a>
+                        {% if hasUnreviewedItems and firstUnreviewedProduct %}
+                            <a href="{{ path('app_product_show', {'id': firstUnreviewedProduct.id}) }}?order_id={{ order.id }}" class="btn btn-success btn-sm">
+                                Leave Review
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         {% endfor %}

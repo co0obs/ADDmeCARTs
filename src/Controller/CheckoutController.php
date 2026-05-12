@@ -49,11 +49,26 @@ class CheckoutController extends AbstractController
             }
         }
 
-        // 5. Send the dynamic numbers to the visual Checkout Template
+        // 5. Get user's delivery addresses
+        $addresses = [];
+        if ($user->getAddress1()) {
+            $addresses[] = ['index' => 0, 'address' => $user->getAddress1()];
+        }
+        if ($user->getAddress2()) {
+            $addresses[] = ['index' => 1, 'address' => $user->getAddress2()];
+        }
+        if ($user->getAddress3()) {
+            $addresses[] = ['index' => 2, 'address' => $user->getAddress3()];
+        }
+        $defaultAddress = $user->getDefaultAddressIndex() ?? 0;
+
+        // 6. Send the dynamic numbers to the visual Checkout Template
         return $this->render('checkout/index.html.twig', [
             'totalItems' => $totalItems,
-            'total' => $total,          
-            'grandTotal' => $total,     
+            'total' => $total,
+            'grandTotal' => $total,
+            'addresses' => $addresses,
+            'defaultAddress' => $defaultAddress,
         ]);
     }
 
@@ -128,6 +143,19 @@ class CheckoutController extends AbstractController
             return $this->redirectToRoute('app_checkout');
         }
 
+        // --- Validate Delivery Address ---
+        $hasAddress = $user->getAddress1() || $user->getAddress2() || $user->getAddress3();
+        if (!$hasAddress) {
+            $this->addFlash('error', 'Please add a delivery address in your profile before checking out.');
+            return $this->redirectToRoute('app_profile');
+        }
+
+        $selectedAddressIndex = $request->request->get('delivery_address');
+        if ($selectedAddressIndex === null) {
+            $this->addFlash('error', 'Please select a delivery address.');
+            return $this->redirectToRoute('app_checkout');
+        }
+
         // --- PIN Validation ---
         $inputPin = $request->request->get('security_pin');
         $savedPin = $user->getSecurityPin();
@@ -147,6 +175,18 @@ class CheckoutController extends AbstractController
         // --- Capture Payment Mode ---
         $paymentMode = $request->request->get('payment_mode', 'GCash');
         $order->setPaymentMode($paymentMode);
+
+        // --- Capture Delivery Address ---
+        $selectedAddressIndex = $request->request->get('delivery_address');
+        $deliveryAddress = null;
+        if ($selectedAddressIndex !== null) {
+            $deliveryAddress = match((int) $selectedAddressIndex) {
+                1 => $user->getAddress2(),
+                2 => $user->getAddress3(),
+                default => $user->getAddress1(),
+            };
+        }
+        $order->setDeliveryAddress($deliveryAddress);
 
         // --- Generate Order Number ---
         $randomHex = strtoupper(bin2hex(random_bytes(3))); // Creates 6 random characters

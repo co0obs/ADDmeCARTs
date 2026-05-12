@@ -35,10 +35,10 @@
                 </div>
             </div>
 
-            <div style="font-size: 2rem; font-weight: 800; color: var(--text-primary);">
+            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">
                 {% if product.salePrice %}
                     <span style="text-decoration: line-through; color: var(--text-muted); font-size: 1.5rem; margin-right: 12px;">₱{{ product.price|number_format(2) }}</span>
-                    <span style="color: #e11d48;">₱{{ product.salePrice|number_format(2) }}</span>
+                    <span style="color: var(--primary);">₱{{ product.salePrice|number_format(2) }}</span>
                 {% else %}
                     ₱{{ product.price|number_format(2) }}
                 {% endif %}
@@ -102,6 +102,9 @@
             <div style="background: var(--bg); border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px; border: 1px solid var(--border);">
                 <h3 style="margin: 0 0 16px 0; font-size: 1.1rem; font-weight: 600;">Write a Review</h3>
                 <form method="post" action="{{ path('app_product_review', {'id': product.id}) }}">
+                    {% if app.request.query.get('order_id') %}
+                        <input type="hidden" name="order_id" value="{{ app.request.query.get('order_id') }}">
+                    {% endif %}
                     <div style="margin-bottom: 16px;">
                         <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem;">Rating</label>
                         <div style="display: flex; gap: 8px;">

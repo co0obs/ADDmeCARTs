@@ -44,6 +44,9 @@ class Order
     #[ORM\Column(length: 255)]
     private ?string $paymentMode = 'GCash';
 
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $deliveryAddress = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -112,6 +115,18 @@ class Order
     public function setPaymentMode(string $paymentMode): static
     {
         $this->paymentMode = $paymentMode;
+
+        return $this;
+    }
+
+    public function getDeliveryAddress(): ?string
+    {
+        return $this->deliveryAddress;
+    }
+
+    public function setDeliveryAddress(?string $deliveryAddress): static
+    {
+        $this->deliveryAddress = $deliveryAddress;
 
         return $this;
     }

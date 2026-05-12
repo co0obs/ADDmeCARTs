@@ -455,7 +455,7 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
 .product-card__price {
     font-size: 1.35rem;
     font-weight: 800;
-    color: var(--success);
+    color: var(--primary);
 }
 
 .product-card__stock {
@@ -562,7 +562,7 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
 .cart-total {
     font-size: 1.3rem;
     font-weight: 800;
-    color: var(--success);
+    color: var(--primary);
 }
 
 /* ============================================================
@@ -688,7 +688,7 @@ textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
 
 .order-ref { font-size: 1rem; font-weight: 800; color: var(--text-primary); }
 .order-date { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
-.order-amount { font-size: 1.2rem; font-weight: 800; color: var(--success); }
+.order-amount { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
 
 .order-card__footer {
     display: flex;
