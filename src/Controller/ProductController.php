@@ -26,8 +26,13 @@ class ProductController extends AbstractController
         $category = $request->query->get('category');
         $stars    = $request->query->getInt('stars');
         $sort     = $request->query->get('sort');
+        $minPriceStr = $request->query->get('minPrice');
+        $maxPriceStr = $request->query->get('maxPrice');
 
-        $products = $productRepository->searchAndFilter($keyword, $category, $stars, $sort);
+        $minPrice = is_numeric($minPriceStr) ? (float) $minPriceStr : null;
+        $maxPrice = is_numeric($maxPriceStr) ? (float) $maxPriceStr : null;
+
+        $products = $productRepository->searchAndFilter($keyword, $category, $stars, $sort, $minPrice, $maxPrice);
 
         return $this->render('product/index.html.twig', [
             'products'        => $products,
@@ -35,6 +40,8 @@ class ProductController extends AbstractController
             'currentCategory' => $category,
             'currentStars'    => $stars,
             'currentSort'     => $sort,
+            'currentMinPrice' => $minPrice,
+            'currentMaxPrice' => $maxPrice,
         ]);
     }
 

@@ -17,9 +17,9 @@ class ProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * Search products by keyword, filter by category/rating, and sort by price.
+     * Search products by keyword, filter by category/rating/price range, and sort by price.
      */
-    public function searchAndFilter(?string $keyword, ?string $category, ?int $minStars, ?string $sort): array
+    public function searchAndFilter(?string $keyword, ?string $category, ?int $minStars, ?string $sort, ?float $minPrice = null, ?float $maxPrice = null): array
     {
         $qb = $this->createQueryBuilder('p');
 
@@ -38,10 +38,21 @@ class ProductRepository extends ServiceEntityRepository
                ->setParameter('minStars', (float) $minStars);
         }
 
+        // Price range filtering - filter by regular price
+        if ($minPrice !== null && $minPrice > 0) {
+            $qb->andWhere('p.price >= :minPrice')
+               ->setParameter('minPrice', $minPrice);
+        }
+
+        if ($maxPrice !== null && $maxPrice > 0) {
+            $qb->andWhere('p.price <= :maxPrice')
+               ->setParameter('maxPrice', $maxPrice);
+        }
+
         if ($sort === 'price_asc') {
-            $qb->orderBy('COALESCE(p.salePrice, p.price)', 'ASC');
+            $qb->orderBy('p.price', 'ASC');
         } elseif ($sort === 'price_desc') {
-            $qb->orderBy('COALESCE(p.salePrice, p.price)', 'DESC');
+            $qb->orderBy('p.price', 'DESC');
         } else {
             $qb->orderBy('p.id', 'DESC');
         }

@@ -50,6 +50,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $storeName = null;
 
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $address1 = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $address2 = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    private ?string $address3 = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $defaultAddressIndex = null;
+
     /**
      * @var Collection<int, Product>
      */
@@ -220,6 +232,70 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->storeName = $storeName;
 
         return $this;
+    }
+
+    public function getAddress1(): ?string
+    {
+        return $this->address1;
+    }
+
+    public function setAddress1(?string $address1): static
+    {
+        $this->address1 = $address1;
+
+        return $this;
+    }
+
+    public function getAddress2(): ?string
+    {
+        return $this->address2;
+    }
+
+    public function setAddress2(?string $address2): static
+    {
+        $this->address2 = $address2;
+
+        return $this;
+    }
+
+    public function getAddress3(): ?string
+    {
+        return $this->address3;
+    }
+
+    public function setAddress3(?string $address3): static
+    {
+        $this->address3 = $address3;
+
+        return $this;
+    }
+
+    public function getDefaultAddressIndex(): ?int
+    {
+        return $this->defaultAddressIndex;
+    }
+
+    public function setDefaultAddressIndex(?int $defaultAddressIndex): static
+    {
+        $this->defaultAddressIndex = $defaultAddressIndex;
+
+        return $this;
+    }
+
+    /**
+     * Helper to get the default address string
+     */
+    public function getDefaultAddress(): ?string
+    {
+        if ($this->defaultAddressIndex === null) {
+            return $this->address1;
+        }
+
+        return match($this->defaultAddressIndex) {
+            1 => $this->address2,
+            2 => $this->address3,
+            default => $this->address1,
+        };
     }
 
     /**

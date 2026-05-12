@@ -48,6 +48,7 @@
                         {% endif %}
                     </a>
                     <span class="nav-greeting">Hi, {{ app.user.firstName }}!</span>
+                    <a href="{{ path('app_profile') }}" class="btn btn-ghost btn-sm">Profile</a>
                     <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm">Log Out</a>
                 {% else %}
                     <a href="{{ path('app_login') }}" class="btn btn-ghost btn-sm">Log In</a>
