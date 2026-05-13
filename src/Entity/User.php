@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -61,6 +62,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(nullable: true)]
     private ?int $defaultAddressIndex = null;
+
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
+    private int $failedPinAttempts = 0;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $pinLockoutUntil = null;
 
     /**
      * @var Collection<int, Product>
@@ -280,6 +287,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->defaultAddressIndex = $defaultAddressIndex;
 
         return $this;
+    }
+
+    public function getFailedPinAttempts(): int
+    {
+        return $this->failedPinAttempts;
+    }
+
+    public function setFailedPinAttempts(int $failedPinAttempts): static
+    {
+        $this->failedPinAttempts = $failedPinAttempts;
+
+        return $this;
+    }
+
+    public function getPinLockoutUntil(): ?\DateTimeInterface
+    {
+        return $this->pinLockoutUntil;
+    }
+
+    public function setPinLockoutUntil(?\DateTimeInterface $pinLockoutUntil): static
+    {
+        $this->pinLockoutUntil = $pinLockoutUntil;
+
+        return $this;
+    }
+
+    /**
+     * Check if user is currently locked out due to failed PIN attempts
+     */
+    public function isPinLockedOut(): bool
+    {
+        if ($this->pinLockoutUntil === null) {
+            return false;
+        }
+
+        return new \DateTime() < $this->pinLockoutUntil;
     }
 
     /**

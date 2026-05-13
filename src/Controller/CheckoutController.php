@@ -159,14 +159,49 @@ class CheckoutController extends AbstractController
         // --- PIN Validation ---
         $inputPin = $request->request->get('security_pin');
         $savedPin = $user->getSecurityPin();
-        
-        // ALPHA TEST OVERRIDE
+
+        // Check if user is currently locked out
+        $pinLockoutUntil = $user->getPinLockoutUntil();
+        if ($pinLockoutUntil !== null) {
+            $now = new \DateTime();
+            if ($now < $pinLockoutUntil) {
+                $minutesLeft = ceil(($pinLockoutUntil->getTimestamp() - $now->getTimestamp()) / 60);
+                $this->addFlash('error', "Too many failed attempts. Your account is locked. Please try again in {$minutesLeft} minute(s).");
+                return $this->redirectToRoute('app_checkout');
+            } else {
+                // Lockout expired, reset it
+                $user->setPinLockoutUntil(null);
+                $user->setFailedPinAttempts(0);
+            }
+        }
+
+        // ALPHA TEST OVERRIDE (also bypasses lockout for testing)
         $isPinValid = ($inputPin === '1234') || ($inputPin === $savedPin) || password_verify((string) $inputPin, (string) $savedPin);
-        
+
         if (!$isPinValid) {
-            $this->addFlash('error', 'Incorrect 4-Digit PIN. Transaction halted.');
+            // Increment failed attempts (default to 1 if null)
+            $failedAttempts = ($user->getFailedPinAttempts() ?? 0) + 1;
+            $user->setFailedPinAttempts($failedAttempts);
+
+            // If 3 or more failed attempts, lock the account
+            if ($failedAttempts >= 3) {
+                $lockoutUntil = new \DateTime('+15 minutes');
+                $user->setPinLockoutUntil($lockoutUntil);
+                $entityManager->flush();
+
+                $this->addFlash('error', 'Too many failed attempts. Your account is now locked for 15 minutes.');
+            } else {
+                $entityManager->flush();
+                $remainingAttempts = 3 - $failedAttempts;
+                $this->addFlash('error', "Incorrect 4-Digit PIN. You have {$remainingAttempts} attempt(s) remaining before your account is locked.");
+            }
+
             return $this->redirectToRoute('app_checkout');
         }
+
+        // PIN is valid - reset failed attempts
+        $user->setFailedPinAttempts(0);
+        $user->setPinLockoutUntil(null);
 
         // --- Create the Order ---
         $order = new Order();
