@@ -2,6 +2,10 @@ doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
 
+        # SQLite configuration to prevent "database is locked" errors
+        options:
+            4: 5000  # PDO::SQLITE_ATTR_BUSY_TIMEOUT (5 seconds)
+
         # IMPORTANT: You MUST configure your server version,
         # either here or in the DATABASE_URL env var (see .env file)
         #server_version: '16'

@@ -88,10 +88,7 @@ class CheckoutController extends AbstractController
     #[Route('/api/mock-gcash-verify', name: 'api_mock_gcash', methods: ['POST'])]
     public function mockGcashVerify(): JsonResponse
     {
-        // Simulate a 2-second network delay to the "external" GCash server
-        sleep(2); 
-
-        // Generate a fake API success payload
+        // Generate a fake API success payload (instant)
         return new JsonResponse([
             'status' => 'success',
             'provider' => 'GCash Mock API',

@@ -12,7 +12,6 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class AdminController extends AbstractController
 {
-    // 1. THE SECRET SETUP ROUTE (You can keep this here just in case!)
     #[Route('/admin/setup', name: 'app_admin_setup')]
     public function setupAdmin(EntityManagerInterface $entityManager): Response
     {
@@ -25,7 +24,7 @@ class AdminController extends AbstractController
         return new Response('<div style="text-align: center; margin-top: 50px;"><h1>Success!</h1><a href="/admin">Go to Admin Dashboard</a></div>');
     }
 
-    // 2. THE MAIN DASHBOARD
+    // Main Dashboard
     #[Route('/admin', name: 'app_admin_dashboard')]
     public function index(EntityManagerInterface $entityManager): Response
     {
@@ -66,7 +65,7 @@ class AdminController extends AbstractController
         ]);
     }
 
-    // 3. THE STATUS UPDATE ROUTE (Handles the Save Button)
+    // Status Update Route
     #[Route('/admin/order/{id}/status', name: 'app_admin_update_status', methods: ['POST'])]
     public function updateStatus(Order $order, Request $request, EntityManagerInterface $entityManager): Response
     {
